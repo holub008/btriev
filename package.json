@@ -1,0 +1,39 @@
+{
+  "name": "btriev",
+  "version": "1.0.0",
+  "description": "Boolean Retrieval on Hierarchical Data",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha",
+    "repl": "local-repl"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holub008/btriev.git"
+  },
+  "keywords": [
+    "boolean",
+    "retrieval",
+    "information",
+    "search",
+    "inverted",
+    "index",
+    "tag",
+    "record",
+    "attribute"
+  ],
+  "author": "Karl Holub <karljholub@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/holub008/btriev/issues"
+  },
+  "homepage": "https://github.com/holub008/btriev#readme",
+  "dependencies": {
+    "dataframe-js": "^1.4.3"
+  },
+  "devDependencies": {
+    "local-repl": "^4.0.0",
+    "mocha": "^8.0.1",
+    "rewire": "^5.0.0"
+  }
+}
