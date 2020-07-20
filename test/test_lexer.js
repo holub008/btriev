@@ -188,30 +188,33 @@ describe('symbol operator regex', function () {
   });
 });
 
-/**
- describe('tokenize on empty query', function() {
+ describe('empty query lexing', function() {
     const query = "";
+    const query2 = " ";
 
-    const lexer = btriev.Lexer();
+    const lexer = new btriev.Lexer();
 
     it('should return an empty token list', function() {
-        assert.strictEqual(lexer.tokenize(query), []);
+        assert.notStrictEqual(lexer.tokenize(query), []);
     });
+
+   it('should return an empty token list for whitespace', function() {
+     assert.notStrictEqual(lexer.tokenize(query2), []);
+   });
 });
 
 
- describe('tokenize on a single tag query', function() {
+ describe('lexing an unquoted tag', function() {
     const queryLower = "blah";
     const queryMixed = "Blah";
 
-    const lexer = btriev.Lexer();
+    const lexer = new btriev.Lexer();
 
     it('should return a single token', function() {
-        assert.strictEqual(lexer.tokenize(query), []);
+        assert.notStrictEqual(lexer.tokenize(queryLower), []);
     });
 
     it('should return a single token, case sensitive', function() {
-        assert.strictEqual(lexer.tokenize(query), []);
+        assert.strictEqual(lexer.tokenize(queryMixed), []);
     });
 });
- */

@@ -8,7 +8,32 @@ const CONSUME_TEXT_OPERATOR = /\b(AND|OR|NOT)(\s+|"|\(|\)|>|\*|$)/i;
 
 // for symbol operators, we ignore all whitespace. note we ignore the " operator here, since a dedicated
 // regex handles it
-const CONSUME_SYMBOL_OPERATOR = /\*|>|\(|\)/;
+const CONSUME_SYMBOL_OPERATOR = /(\*|>|\(|\))/;
+
+function tokenizeOperatorMatch(match, consumedIx, unconsumedQuery) {
+  const operatorIndex = match['index'];
+  const operator = match[1];
+
+  const tokens = [new Token(
+    consumedIx + operatorIndex,
+    consumedIx + match[0].length,
+    operator,
+    TokenType.OPERATOR)
+  ];
+
+  // anything to the left of the operator is an unquoted tag
+  const lhs = unconsumedQuery.slice(operatorIndex).trim();
+  if (lhs) {
+    tokens.push(new Token(
+      consumedIx,
+      consumedIx + operatorIndex,
+      lhs,
+      TokenType.TAG)
+    );
+  }
+
+  return tokens;
+}
 
 class Lexer {
   /**
@@ -46,21 +71,36 @@ class Lexer {
         continue;
       }
 
-      const symbolOperatorMatch = QUOTED_TAG_TOKEN.exec(unconsumedQuery);
-      if (symbolOperatorMatch) {
-
+      // run both operator regexes, and see which form of operator happens first
+      // these regexes could be combined, but the regex complexity explodes
+      const symbolOperatorMatch = CONSUME_SYMBOL_OPERATOR.exec(unconsumedQuery);
+      const textOperatorMatch = CONSUME_TEXT_OPERATOR.exec(unconsumedQuery);
+      if ((textOperatorMatch && symbolOperatorMatch && textOperatorMatch['index'] < symbolOperatorMatch['index']) ||
+        (textOperatorMatch && !symbolOperatorMatch)
+      ) {
+        tokenizeOperatorMatch(textOperatorMatch, consumedIx, unconsumedQuery)
+          .forEach(t => tokens.push(t));
       }
-
-      const textOperatorMatch = CONSUME_SYMBOL_OPERATOR.exec(unconsumedQuery);
-      if (textOperatorMatch) {
-        const operatorIndex = textOperatorMatch['index'];
-
-        // anything to the left of the operator is an unquoted tag
-        if (operatorIndex > 0) {
-          const lhs = query.slice(consumedIx, operatorIndex).trim()
+      else if (symbolOperatorMatch) {
+        tokenizeOperatorMatch(symbolOperatorMatch, consumedIx, unconsumedQuery)
+          .forEach(t => tokens.push(t));
+      }
+      else {
+        // if nothing else matched as an operator or quoted tag, all that remains is an unquoted tag
+        const tag = unconsumedQuery.trim();
+        if (tag)  {
+          tokens.push(new Token(
+            consumedIx,
+            query.length,
+            unconsumedQuery,
+            TokenType.TAG
+          ));
         }
+        consumedIx = query.length;
       }
     }
+
+    return tokens;
   }
 }
 
