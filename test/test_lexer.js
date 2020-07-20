@@ -4,73 +4,192 @@ const rewire = require("rewire");
 const lexModule = rewire("../../btriev/src/lexer.js");
 const btriev = require('../../btriev');
 
-describe('quoting regex', function() {
+describe('quoting regex', function () {
 
-    const re = lexModule.__get__("QUOTED_TAG_TOKEN");
+  const re = lexModule.__get__("QUOTED_TAG_TOKEN");
 
-    it('should not match an empty string', function() {
-        const query = '';
-        assert.strictEqual(re.exec(query), null);
-    });
+  it('should not match an empty string', function () {
+    const query = '';
+    assert.strictEqual(re.exec(query), null);
+  });
 
-    it('should match an empty string literal', function() {
-        const query = '""';
-        assert.strictEqual(re.exec(query)[0], '""');
-    });
+  it('should match an empty string literal', function () {
+    const query = '""';
+    assert.strictEqual(re.exec(query)[1], '""');
+  });
 
-    it('should not match a non-leading string literal', function() {
-        const query = 'and ""';
-        assert.strictEqual(re.exec(query), null);
-    });
+  it('should not match a non-leading string literal', function () {
+    const query = 'and ""';
+    assert.strictEqual(re.exec(query), null);
+  });
 
-    it('should not match a trailing content', function() {
-        const query = '"yes" or';
-        assert.strictEqual(re.exec(query)[0], '"yes"');
-    });
+  it('should match a whitespace padded string literal', function () {
+    const query = '\n\t "blah"';
+    const match = re.exec(query);
+    assert.strictEqual(match[1], '"blah"');
+  });
 
-    it('should match mixed content', function() {
-        const query = '"yes and \\"maybe\\" with weird " or';
-        assert.strictEqual(re.exec(query)[0], '"yes and \\"maybe\\" with weird "');
-    });
+  it('should not match a trailing content', function () {
+    const query = '"yes" or';
+    assert.strictEqual(re.exec(query)[1], '"yes"');
+  });
+
+  it('should match mixed content', function () {
+    const query = '"yes and \\"maybe\\" with weird " or';
+    assert.strictEqual(re.exec(query)[1], '"yes and \\"maybe\\" with weird "');
+  });
 });
 
-describe('unquoted tag regex', function() {
+describe('text operator regex', function () {
 
-    const re = lexModule.__get__("UNTIL_CONTROL_OPERATOR");
+  const re = lexModule.__get__("CONSUME_TEXT_OPERATOR");
 
-    it('should not match an empty string', function() {
-        const query = '';
-        assert.strictEqual(re.exec(query), null);
-    });
+  it('should not match an empty string', function () {
+    const query = '';
+    assert.strictEqual(re.exec(query), null);
+  });
 
-    it('should consume a full, uncontrolled query', function() {
-        const query = 'tag name 1 and tag2 or not tag3';
-        assert.strictEqual(re.exec(query)[0], 'tag name 1 and tag2 or not tag3');
-    });
+  it('should not match a full unquoted tag', function () {
+    const query = 'tag name 1 with%! fun ch@ractersandsomenotorkeywords';
+    assert.strictEqual(re.exec(query), null);
+  });
 
-    it('should not match starting from a control point', function() {
-        const query = '""';
-        assert.strictEqual(re.exec(query), null);
-    });
+  it('should match a starting operator', function () {
+    const query = 'and and';
+    const match = re.exec(query);
+    assert.strictEqual(match[1], 'and');
+    assert.strictEqual(match['index'], 0);
+  });
 
-    it('should consume until a control parens', function() {
-        const query = 'tag1 and tag2 or tag3 and (tag2 and tag4)';
-        assert.strictEqual(re.exec(query)[0], 'tag1 and tag2 or tag3 and ');
-    });
+  it('should match a trailing operator', function () {
+    const query = 'tag and';
+    const match = re.exec(query);
+    assert.strictEqual(match[1], 'and');
+    assert.strictEqual(match['index'], 4);
+  });
 
-    it('should consume until a control parens followed by quote', function() {
-        const query = 'tag1 and tag2 or tag3 and  ("tag2" and tag4)';
-        assert.strictEqual(re.exec(query)[0], 'tag1 and tag2 or tag3 and  ');
-    });
+  it('should match a not match an operator without whitespace', function () {
+    const query1 = 'andand ';
+    const query2 = '\n  land';
+    assert.strictEqual(re.exec(query1), null);
+    assert.strictEqual(re.exec(query2), null);
+  });
 
-    it('should consume until a quote', function() {
-        const query = 'tag1 and "tag4"';
-        assert.strictEqual(re.exec(query)[0], 'tag1 and ');
-    });
+  it('should match or', function () {
+    const query1 = 'or ';
+    const query2 = 'tag1    or "tag2"';
+    const query3 = 'tag1    \nor (blah)';
+
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+    const match3 = re.exec(query3);
+
+    assert.strictEqual(match1[1], 'or');
+    assert.strictEqual(match1['index'], 0);
+    assert.strictEqual(match2[1], 'or');
+    assert.strictEqual(match2['index'], 8);
+    assert.strictEqual(match3[1], 'or');
+    assert.strictEqual(match3['index'], 9);
+  });
+
+  it('should match not', function () {
+    const query1 = ' not tag';
+    const query2 = ' blah not"tag"';
+    const query3 = 'blah not(other or this)';
+
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+    const match3 = re.exec(query3);
+
+    assert.strictEqual(match1[1], 'not');
+    assert.strictEqual(match1['index'], 1);
+    assert.strictEqual(match2[1], 'not');
+    assert.strictEqual(match2['index'], 6);
+    assert.strictEqual(match3[1], 'not');
+    assert.strictEqual(match3['index'], 5);
+  });
+
+  it('should match case insensitive', function () {
+    const query1 = ' Not tag';
+    const query2 = 'tag1 AND"tag2';
+
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+
+    assert.strictEqual(match1[1], 'Not');
+    assert.strictEqual(match1['index'], 1);
+    assert.strictEqual(match2[1], 'AND');
+    assert.strictEqual(match2['index'], 5);
+  });
+});
+
+describe('symbol operator regex', function () {
+
+  const re = lexModule.__get__("CONSUME_SYMBOL_OPERATOR");
+
+  it('should not match an empty string', function () {
+    const query = '';
+    assert.strictEqual(re.exec(query), null);
+  });
+
+  it('should not match non-symbol-operators', function () {
+    const query = 'and or not blah';
+    assert.strictEqual(re.exec(query), null);
+  });
+
+  it('should match explosion', function () {
+    const query1 = 'tag*';
+    const query2 = '*';
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+
+    assert.strictEqual(match1[0], '*');
+    assert.strictEqual(match1['index'], 3);
+
+    assert.strictEqual(match2[0], '*');
+    assert.strictEqual(match2['index'], 0);
+  });
+
+  it('should match pathing', function () {
+    const query1 = '>';
+    const query2 = 'tag1>tag2';
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+
+    assert.strictEqual(match1[0], '>');
+    assert.strictEqual(match1['index'], 0);
+
+    assert.strictEqual(match2[0], '>');
+    assert.strictEqual(match2['index'], 4);
+  });
+
+  it('should match parens', function() {
+    const query1 = '(';
+    const query2 = ')';
+    const query3 = 'not ()';
+    const query4 = 'blah )';
+
+    const match1 = re.exec(query1);
+    const match2 = re.exec(query2);
+    const match3 = re.exec(query3);
+    const match4 = re.exec(query4);
+
+    assert.strictEqual(match1[0], '(');
+    assert.strictEqual(match1['index'], 0);
+
+    assert.strictEqual(match2[0], ')');
+    assert.strictEqual(match2['index'], 0);
+
+    assert.strictEqual(match3[0], '(');
+    assert.strictEqual(match3['index'], 4);
+
+    assert.strictEqual(match4[0], ')');
+    assert.strictEqual(match4['index'], 5);
+  });
 });
 
 /**
-describe('tokenize on empty query', function() {
+ describe('tokenize on empty query', function() {
     const query = "";
 
     const lexer = btriev.Lexer();
@@ -81,7 +200,7 @@ describe('tokenize on empty query', function() {
 });
 
 
-describe('tokenize on a single tag query', function() {
+ describe('tokenize on a single tag query', function() {
     const queryLower = "blah";
     const queryMixed = "Blah";
 

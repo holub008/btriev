@@ -1,37 +1,36 @@
-
 const TokenType = {
-    OPERATOR: 0,
-    TAG: 1,
+  OPERATOR: 0,
+  TAG: 1,
 };
 
 
-class Token{
+class Token {
 
-    constructor(startIndex, endIndex, value, type) {
-        this.startIndex = startIndex;
-        this.endIndex = endIndex;
-        this.value = value;
-        this.type = type;
-    }
+  constructor(startIndex, endIndex, value, type) {
+    this.startIndex = startIndex;
+    this.endIndex = endIndex;
+    this.value = value;
+    this.type = type;
+  }
 
-    getStartIndex() {
-        return this.startIndex;
-    }
+  getStartIndex() {
+    return this.startIndex;
+  }
 
-    getEndIndex() {
-        return this.endIndex;
-    }
+  getEndIndex() {
+    return this.endIndex;
+  }
 
-    getValue() {
-        return this.value;
-    }
+  getValue() {
+    return this.value;
+  }
 
-    getType() {
-        return this.type;
-    }
+  getType() {
+    return this.type;
+  }
 }
 
 module.exports = {
-    Token,
-    TokenType: TokenType,
+  Token,
+  TokenType: TokenType,
 };
