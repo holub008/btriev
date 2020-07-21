@@ -1,12 +1,14 @@
 const assert = require('assert');
 const rewire = require("rewire");
 
-const lexModule = rewire("../../btriev/src/lexer.js");
+const lm = rewire("../../btriev/src/lexer.js");
+
 const btriev = require('../../btriev');
+const tokens = require('../../btriev/src/tokens');
 
 describe('quoting regex', function () {
 
-  const re = lexModule.__get__("QUOTED_TAG_TOKEN");
+  const re = lm.__get__("QUOTED_TAG_TOKEN");
 
   it('should not match an empty string', function () {
     const query = '';
@@ -42,7 +44,7 @@ describe('quoting regex', function () {
 
 describe('text operator regex', function () {
 
-  const re = lexModule.__get__("CONSUME_TEXT_OPERATOR");
+  const re = lm.__get__("CONSUME_TEXT_OPERATOR");
 
   it('should not match an empty string', function () {
     const query = '';
@@ -125,7 +127,7 @@ describe('text operator regex', function () {
 
 describe('symbol operator regex', function () {
 
-  const re = lexModule.__get__("CONSUME_SYMBOL_OPERATOR");
+  const re = lm.__get__("CONSUME_SYMBOL_OPERATOR");
 
   it('should not match an empty string', function () {
     const query = '';
@@ -188,14 +190,14 @@ describe('symbol operator regex', function () {
   });
 });
 
- describe('empty query lexing', function() {
+describe('empty query lexing', function() {
     const query = "";
     const query2 = " ";
 
     const lexer = new btriev.Lexer();
 
     it('should return an empty token list', function() {
-        assert.notStrictEqual(lexer.tokenize(query), []);
+      assert.notStrictEqual(lexer.tokenize(query), []);
     });
 
    it('should return an empty token list for whitespace', function() {
@@ -204,17 +206,70 @@ describe('symbol operator regex', function () {
 });
 
 
- describe('lexing an unquoted tag', function() {
+describe('lexing an unquoted tag', function() {
     const queryLower = "blah";
     const queryMixed = "Blah";
 
     const lexer = new btriev.Lexer();
 
     it('should return a single token', function() {
-        assert.notStrictEqual(lexer.tokenize(queryLower), []);
+      const target = [new tokens.Token(0, 3, 'blah', tokens.TokenType.TAG)];
+      assert.ok(tokens.tokensEqual(lexer.tokenize(queryLower), target));
     });
 
     it('should return a single token, case sensitive', function() {
-        assert.strictEqual(lexer.tokenize(queryMixed), []);
+      const target = [new tokens.Token(0, 3, 'Blah', tokens.TokenType.TAG)];
+      assert.ok(tokens.tokensEqual(lexer.tokenize(queryMixed), target));
     });
+});
+
+describe('lexing a two part conjunction', function() {
+  const queryUnquoted = "tag name 1 AND tag name 2";
+  const queryQuoted = 'tag name 1 AND "tag name 2"';
+  const lexer = new btriev.Lexer();
+
+  it('should handle unquoted tags', function() {
+    const target = [
+      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 14, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(14, 24, 'tag name 2', tokens.TokenType.TAG),
+    ];
+
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
+  });
+
+  it('should handle quoted tags', function() {
+    const target = [
+      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 14, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(14, 26, 'tag name 2', tokens.TokenType.TAG),
+    ];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
+  });
+});
+
+describe('lexing a two part union', function() {
+  const queryUnquoted = "tag name 1 or tag name 2";
+  const queryQuoted = '"tag name" 1 OR "tag name 2"';
+  const lexer = new btriev.Lexer();
+
+  it('should handle unquoted tags', function() {
+    const target = [
+      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 13, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(13, 23, 'tag name 2', tokens.TokenType.TAG),
+    ];
+
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
+  });
+
+  it('should handle quoted tags', function() {
+    const target = [
+      new tokens.Token(0, 9, 'tag name', tokens.TokenType.TAG),
+      new tokens.Token(10, 13, '1', tokens.TokenType.TAG),
+      new tokens.Token(13, 15, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(15, 27, 'tag name 2', tokens.TokenType.TAG),
+    ];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
+  });
 });

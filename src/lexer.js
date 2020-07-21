@@ -12,17 +12,12 @@ const CONSUME_SYMBOL_OPERATOR = /(\*|>|\(|\))/;
 
 function tokenizeOperatorMatch(match, consumedIx, unconsumedQuery) {
   const operatorIndex = match['index'];
-  const operator = match[1];
+  const operator = match[1].toLowerCase();
 
-  const tokens = [new Token(
-    consumedIx + operatorIndex,
-    consumedIx + match[0].length,
-    operator,
-    TokenType.OPERATOR)
-  ];
+  const tokens = [];
 
   // anything to the left of the operator is an unquoted tag
-  const lhs = unconsumedQuery.slice(operatorIndex).trim();
+  const lhs = unconsumedQuery.slice(consumedIx, operatorIndex + consumedIx).trim();
   if (lhs) {
     tokens.push(new Token(
       consumedIx,
@@ -32,7 +27,19 @@ function tokenizeOperatorMatch(match, consumedIx, unconsumedQuery) {
     );
   }
 
-  return tokens;
+  // we consumed everything before the operator, plus the operator length itself
+  const newConsumedIx = consumedIx + operatorIndex + operator.length;
+
+  tokens.push(new Token(
+    consumedIx + operatorIndex,
+    newConsumedIx,
+    operator,
+    TokenType.OPERATOR));
+
+  return {
+    tokens,
+    newConsumedIx,
+  };
 }
 
 class Lexer {
@@ -59,9 +66,12 @@ class Lexer {
       const quotedTagMatch = QUOTED_TAG_TOKEN.exec(unconsumedQuery);
       if (quotedTagMatch) {
         const consumedEndIndex = consumedIx + quotedTagMatch[0].length;
-        const tokenValue = quotedTagMatch[1].trim();
+        const tokenValueQuoted = quotedTagMatch[1]
+          .trim() // whitespace
+          .replace('\"', '"'); // escaped quotes are unescaped
+        const tokenValue = tokenValueQuoted.slice(1, tokenValueQuoted.length - 1);
         const token = new Token(consumedIx,
-          consumedEndIndex,
+          consumedEndIndex - 1,
           tokenValue,
           TokenType.TAG);
 
@@ -78,12 +88,14 @@ class Lexer {
       if ((textOperatorMatch && symbolOperatorMatch && textOperatorMatch['index'] < symbolOperatorMatch['index']) ||
         (textOperatorMatch && !symbolOperatorMatch)
       ) {
-        tokenizeOperatorMatch(textOperatorMatch, consumedIx, unconsumedQuery)
-          .forEach(t => tokens.push(t));
+        const tokenization = tokenizeOperatorMatch(textOperatorMatch, consumedIx, query);
+        tokenization.tokens.forEach(t => tokens.push(t));
+        consumedIx = tokenization.newConsumedIx;
       }
       else if (symbolOperatorMatch) {
-        tokenizeOperatorMatch(symbolOperatorMatch, consumedIx, unconsumedQuery)
-          .forEach(t => tokens.push(t));
+        const tokenization = tokenizeOperatorMatch(symbolOperatorMatch, consumedIx, query);
+        tokenization.tokens.forEach(t => tokens.push(t));
+        consumedIx = tokenization.newConsumedIx;
       }
       else {
         // if nothing else matched as an operator or quoted tag, all that remains is an unquoted tag
@@ -91,8 +103,8 @@ class Lexer {
         if (tag)  {
           tokens.push(new Token(
             consumedIx,
-            query.length,
-            unconsumedQuery,
+            query.length - 1,
+            tag,
             TokenType.TAG
           ));
         }
