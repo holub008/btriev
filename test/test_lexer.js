@@ -273,3 +273,27 @@ describe('lexing a two part union', function() {
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
   });
 });
+
+describe('lexing a negation', function() {
+  const queryUnquoted = "not tag name 1";
+  const queryQuoted = 'a tag\nnot "tag name"';
+  const lexer = new btriev.Lexer();
+
+  it('should handle a single unquoted tag', function() {
+    const target = [
+      new tokens.Token(0, 3, 'not', tokens.TokenType.OPERATOR),
+      new tokens.Token(3, 13, 'tag name 1', tokens.TokenType.TAG),
+    ];
+
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
+  });
+
+  it('should handle in context', function() {
+    const target = [
+      new tokens.Token(0, 6, 'a tag', tokens.TokenType.TAG),
+      new tokens.Token(6, 9, 'not', tokens.TokenType.OPERATOR),
+      new tokens.Token(9, 19, 'tag name', tokens.TokenType.TAG),
+    ];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
+  });
+});
