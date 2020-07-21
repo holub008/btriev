@@ -68,7 +68,7 @@ class Lexer {
         const consumedEndIndex = consumedIx + quotedTagMatch[0].length;
         const tokenValueQuoted = quotedTagMatch[1]
           .trim() // whitespace
-          .replace('\"', '"'); // escaped quotes are unescaped
+          .replace(/\\"/g, '"'); // escaped quotes are unescaped
         const tokenValue = tokenValueQuoted.slice(1, tokenValueQuoted.length - 1);
         const token = new Token(consumedIx,
           consumedEndIndex - 1,
