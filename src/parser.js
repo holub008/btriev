@@ -1,4 +1,4 @@
-const tokens = require('./tokens');
+const tk = require('./tokens');
 const ast = require('./ast');
 const err = require('./errors');
 
@@ -40,35 +40,15 @@ function shouldBackProcess(node, operatorStack) {
 
 class Parser {
 
-  processNext(operatorStack, expressions) {
-    const operatorTag = operatorStack.pop();
-    const operator = ast.Operators[operatorTag.getValue()];
-
-    if (!operator) {
-      // this is a developer error (ie bad lexing of the query), not a user facing one
-      throw new Error(`Unrecognized operator type ${operatorTag.getValue()}`);
-    }
-
-    const expressionParent = new ast.Node(operatorTag);
-    for (let opIx = 0; opIx < operator.getArity(); opIx++) {
-      const childExpr = expressions.pop();
-      if (!childExpr) {
-        throw new err.ParseError('Missing expected expression', operatorTag.getStartIndex(), operatorTag.getEndIndex());
-      }
-      expressionParent.addChild(childExpr)
-    }
-    expressions.push(expressionParent);
-  }
-
   parse(tokens) {
     let expressions = [];
     const operatorStack = [];
 
     tokens.forEach(t => {
-      if (t.getType() === tokens.TokenType.TAG) {
+      if (t.getType() === tk.TokenType.TAG) {
         expressions.push(new ast.Node(t));
       }
-      else if (t.getType() === tokens.TokenType.OPERATOR) {
+      else if (t.getType() === tk.TokenType.OPERATOR) {
         const operatorLiteral = ast.Operators[t.getValue()];
 
         if (!operatorLiteral) {
@@ -123,9 +103,13 @@ class Parser {
       throw new err.ParseError('Expected an operator between expressions',
         lhsEnd, rhsStart);
     }
-
+    else if (expressions.length === 0) {
+      return null;
+    }
+    else {
+      return expressions[0];
+    }
   }
-
 }
 
 module.exports = {

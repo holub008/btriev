@@ -32,7 +32,7 @@ class Node {
       }
 
       this.addChild(lhs);
-      this.addChild((rhs);
+      this.addChild(rhs);
       expressions.push(this);
     }
     else if (this._operator.getPlacement() === OperatorPlacement.LEFT) {
