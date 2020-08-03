@@ -60,12 +60,12 @@ class Parser {
           // this is a hardcode - assuming parens are highest prio
           operatorStack.push(node);
         }
-        else if (operatorLiteral === ast.Operators[")"]) {
+        else if (operatorLiteral === ast.Operators[')']) {
           // parse everything until the open parens
           let popped = operatorStack.pop();
           while (popped && popped.getOperator() !== ast.Operators['(']) {
-            popped = operatorStack.pop();
             popped.attachToAST(expressions);
+            popped = operatorStack.pop();
           }
 
           // case we ran through everything without finding the close parens - error location is the close paren
@@ -82,6 +82,7 @@ class Parser {
             const priorNode = operatorStack.pop();
             priorNode.attachToAST(expressions);
           }
+          operatorStack.push(node);
         }
       }
       else {
