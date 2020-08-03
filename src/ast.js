@@ -70,6 +70,65 @@ class Node {
   getChildren() {
     return this._children;
   }
+
+  equals(other) {
+    /**
+     * note: this is not a "deep" implementation - in that it does not check child nodes
+     */
+    const tokenEqual = this.getToken().equals(other.getToken());
+    const operatorEqual = this.getOperator() === other.getOperator();
+
+    return tokenEqual && operatorEqual;
+  }
+
+  toString(recursive=false) {
+    return JSON.stringify({
+      token: this.getToken(),
+      operator: this.getOperator()?.getDisplayName(),
+      children: recursive ? this.getChildren().map(c => c.toString(recursive)) : this.getChildren().length,
+    });
+  }
+}
+
+function nodesEqual(left, right, verbose, depth=0) {
+  if (!left || !right) {
+    throw new Error('Objects to compare must be non-null');
+  }
+
+  if (left instanceof Node && right instanceof Node) {
+
+    if (!left.equals(right)) {
+      if (verbose) {
+        console.log(`Left:\n${left.toString()}\n\nAnd right:\n${right.toString()}\n\nAt depth = ${depth} have unequal attributes.`);
+      }
+      return false;
+    }
+    else {
+      const leftChildren = left.getChildren();
+      const rightChildren = right.getChildren();
+      if (leftChildren.length !== rightChildren.length) {
+        if (verbose) {
+          console.log(`Left:\n${left.toString()}\n\nAnd right:\n${right.toString()}\n\nAt depth = ${depth} have unequal number of children.`);
+        }
+        return false;
+      }
+      else {
+        for (let ix = 0; ix < left.getChildren().length; ix++) {
+          const deepEquals = nodesEqual(leftChildren[ix], rightChildren[ix], verbose,depth + 1);
+          // unequal children handle their own printing and the like
+          // we also stop recursing on the first failure only
+          if (!deepEquals){
+            return false;
+          }
+        }
+        return true;
+      }
+
+    }
+  }
+  else {
+    throw new Error('Unknown operand types, must be Node type');
+  }
 }
 
 const OperatorPlacement = {
@@ -119,4 +178,5 @@ module.exports = {
   Operator,
   Operators,
   OperatorPlacement,
+  nodesEqual,
 };

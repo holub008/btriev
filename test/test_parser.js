@@ -17,7 +17,7 @@ describe('parsing a single tag', function () {
   const tkSequence = [new tokens.Token(0, 1, 'tag1', tokens.TokenType.TAG)];
   const parser = new btriev.Parser();
   it('should produce a single root', function () {
-    assert.notStrictEqual(parser.parse(tkSequence), new ast.Node(tkSequence[0]));
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), new ast.Node(tkSequence[0]), true));
   });
 });
 
@@ -30,8 +30,7 @@ describe('parsing a single conjunction', function () {
   const parser = new btriev.Parser();
 
   it('should produce a single root', function () {
-    console.log(parser.parse(tkSequence));
-    assert.ok(false);
-    assert.notStrictEqual(parser.parse(tkSequence), new ast.Node(tkSequence[1]));
+
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), new ast.Node(tkSequence[1]), true));
   });
 });
