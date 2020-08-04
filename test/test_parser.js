@@ -105,7 +105,88 @@ describe('parsing a conjunction then a union with parens', function () {
   target.addChild(targetOr);
 
   it('should produce a depth 2 AST, even with parens', function () {
-    const tkSequenceWithParens = tkSequence.slice();
-    assert.ok(ast.nodesEqual(parser.parse(tkSequenceWithParens), target, true));
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
+  });
+});
+
+describe('parsing a negation', function () {
+  const tkSequence = [
+    new tokens.Token(0, 1, 'not', tokens.TokenType.OPERATOR),
+    new tokens.Token(2, 3, 'tag1', tokens.TokenType.TAG),
+    new tokens.Token(4, 5, 'and', tokens.TokenType.OPERATOR),
+    new tokens.Token(6, 7, 'tag2', tokens.TokenType.TAG),
+  ];
+  const parser = new btriev.Parser();
+
+  const target = new ast.Node(tkSequence[2], ast.Operators.and);
+  const targetNegation = new ast.Node(tkSequence[0], ast.Operators.not);
+  targetNegation.addChild(new ast.Node(tkSequence[1]));
+
+  target.addChild(targetNegation);
+  target.addChild(new ast.Node(tkSequence[3]));
+
+  it('should produce a depth 2 AST', function () {
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
+  });
+});
+
+describe('parsing an explosion', function () {
+  const tkSequence = [
+    new tokens.Token(0, 1, 'not', tokens.TokenType.OPERATOR),
+    new tokens.Token(2, 3, 'tag1', tokens.TokenType.TAG),
+    new tokens.Token(4, 5, '*', tokens.TokenType.OPERATOR),
+    new tokens.Token(6, 7, 'or', tokens.TokenType.OPERATOR),
+    new tokens.Token(8, 9, 'tag2', tokens.TokenType.TAG),
+  ];
+  const parser = new btriev.Parser();
+
+  const target = new ast.Node(tkSequence[3], ast.Operators.or);
+  const negation = new ast.Node(tkSequence[0], ast.Operators.not);
+  const explosion = new ast.Node(tkSequence[2], ast.Operators['*']);
+  explosion.addChild(new ast.Node(tkSequence[1]));
+  negation.addChild(explosion);
+
+  target.addChild(negation);
+  target.addChild(new ast.Node(tkSequence[4]));
+
+  it('should produce a depth 3 AST', function () {
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
+  });
+});
+
+describe('parsing a path', function () {
+  const tkSequence = [
+    new tokens.Token(0, 1, 'not', tokens.TokenType.OPERATOR),
+    new tokens.Token(2, 3, 'grandparent', tokens.TokenType.TAG),
+    new tokens.Token(4, 5, '>', tokens.TokenType.OPERATOR),
+    new tokens.Token(6, 7, 'parent', tokens.TokenType.TAG),
+    new tokens.Token(8, 9, '>', tokens.TokenType.OPERATOR),
+    new tokens.Token(10, 11, 'child', tokens.TokenType.TAG),
+    new tokens.Token(12, 13, '*', tokens.TokenType.OPERATOR),
+    new tokens.Token(12, 13, 'and', tokens.TokenType.OPERATOR),
+    new tokens.Token(12, 13, 'tag2', tokens.TokenType.TAG),
+  ];
+  const parser = new btriev.Parser();
+
+  const target = new ast.Node(tkSequence[7], ast.Operators.and);
+  const negation = new ast.Node(tkSequence[0], ast.Operators.not);
+  const path1 = new ast.Node(tkSequence[2], ast.Operators['>']);
+  const path2 = new ast.Node(tkSequence[4], ast.Operators['>']);
+  const explosion = new ast.Node(tkSequence[6], ast.Operators['*']);
+
+  path2.addChild(new ast.Node(tkSequence[3]));
+  path2.addChild(new ast.Node(tkSequence[5]));
+
+  path1.addChild(new ast.Node(tkSequence[1]));
+  path1.addChild(path2);
+
+  explosion.addChild(path1);
+  negation.addChild(explosion);
+
+  target.addChild(negation);
+  target.addChild(new ast.Node(tkSequence[8]));
+
+  it('should produce a depth 4 AST', function () {
+    assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
   });
 });

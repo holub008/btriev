@@ -35,7 +35,7 @@ function shouldBackProcess(node, operatorStack) {
     return false;
   }
 
-  return topOperatorLiteral.getPrecedence() >= currentOperatorLiteral.getPrecedence();
+  return topOperatorLiteral.getPrecedence() > currentOperatorLiteral.getPrecedence();
 }
 
 class Parser {
