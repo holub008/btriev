@@ -106,8 +106,6 @@ describe('parsing a conjunction then a union with parens', function () {
 
   it('should produce a depth 2 AST, even with parens', function () {
     const tkSequenceWithParens = tkSequence.slice();
-    tkSequenceWithParens.splice(2, 0, new tokens.Token(-1, -2, '(', tokens.TokenType.OPERATOR));
-    tkSequenceWithParens.push(new tokens.Token(-3, -4, ')', tokens.TokenType.OPERATOR));
     assert.ok(ast.nodesEqual(parser.parse(tkSequenceWithParens), target, true));
   });
 });

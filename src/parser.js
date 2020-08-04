@@ -73,9 +73,6 @@ class Parser {
             throw new err.ParseError(`Unmatched ${ast.Operators[')'].getDisplayName()}`,
               t.getStartIndex(), t.getEndIndex());
           }
-
-          // pop off the open parens- its ordering is encoded in the AST and we are done with it
-          operatorStack.pop();
         }
         else {
           while (shouldBackProcess(node, operatorStack)) {
@@ -98,7 +95,7 @@ class Parser {
     }
 
     //this condition indicates that two operands were abutted, with no operator between them
-    if (expressions.length > 1 && operatorStack.length === 1) {
+    if (expressions.length > 1) {
       const lhsEnd = getIndexEdges(expressions[0])[1];
       const rhsStart = getIndexEdges(expressions[1])[0];
       throw new err.ParseError('Expected an operator between expressions',
