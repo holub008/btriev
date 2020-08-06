@@ -3,6 +3,7 @@ const assert = require('assert');
 const btriev = require('../../btriev');
 const tokens = require('../../btriev/src/tokens');
 const ast = require('../../btriev/src/ast');
+const ops = require('../../btriev/src/operators');
 
 
 describe('parsing an empty sequence', function () {
@@ -30,7 +31,7 @@ describe('parsing a single conjunction', function () {
   const parser = new btriev.Parser();
 
   it('should produce a depth 1 AST', function () {
-    const target = new ast.Node(tkSequence[1], ast.Operators.and);
+    const target = new ast.Node(tkSequence[1], ops.Operators.and);
     target.addChild(new ast.Node(tkSequence[0]));
     target.addChild(new ast.Node(tkSequence[2]));
 
@@ -49,8 +50,8 @@ describe('parsing a union and then a conjunction', function () {
   const parser = new btriev.Parser();
 
   it('should produce a depth 2 AST', function () {
-    const target = new ast.Node(tkSequence[1], ast.Operators.or);
-    const targetAnd = new ast.Node(tkSequence[3], ast.Operators.and);
+    const target = new ast.Node(tkSequence[1], ops.Operators.or);
+    const targetAnd = new ast.Node(tkSequence[3], ops.Operators.and);
     targetAnd.addChild(new ast.Node(tkSequence[2]));
     targetAnd.addChild(new ast.Node(tkSequence[4]));
 
@@ -72,8 +73,8 @@ describe('parsing a conjunction then a union', function () {
   const parser = new btriev.Parser();
 
   it('should produce a depth 2 AST', function () {
-    const target = new ast.Node(tkSequence[3], ast.Operators.or);
-    const targetAnd = new ast.Node(tkSequence[1], ast.Operators.and);
+    const target = new ast.Node(tkSequence[3], ops.Operators.or);
+    const targetAnd = new ast.Node(tkSequence[1], ops.Operators.and);
     targetAnd.addChild(new ast.Node(tkSequence[0]));
     targetAnd.addChild(new ast.Node(tkSequence[2]));
 
@@ -96,8 +97,8 @@ describe('parsing a conjunction then a union with parens', function () {
   ];
   const parser = new btriev.Parser();
 
-  const target = new ast.Node(tkSequence[1], ast.Operators.and);
-  const targetOr = new ast.Node(tkSequence[4], ast.Operators.or);
+  const target = new ast.Node(tkSequence[1], ops.Operators.and);
+  const targetOr = new ast.Node(tkSequence[4], ops.Operators.or);
   targetOr.addChild(new ast.Node(tkSequence[3]));
   targetOr.addChild(new ast.Node(tkSequence[5]));
 
@@ -118,8 +119,8 @@ describe('parsing a negation', function () {
   ];
   const parser = new btriev.Parser();
 
-  const target = new ast.Node(tkSequence[2], ast.Operators.and);
-  const targetNegation = new ast.Node(tkSequence[0], ast.Operators.not);
+  const target = new ast.Node(tkSequence[2], ops.Operators.and);
+  const targetNegation = new ast.Node(tkSequence[0], ops.Operators.not);
   targetNegation.addChild(new ast.Node(tkSequence[1]));
 
   target.addChild(targetNegation);
@@ -140,9 +141,9 @@ describe('parsing an explosion', function () {
   ];
   const parser = new btriev.Parser();
 
-  const target = new ast.Node(tkSequence[3], ast.Operators.or);
-  const negation = new ast.Node(tkSequence[0], ast.Operators.not);
-  const explosion = new ast.Node(tkSequence[2], ast.Operators['*']);
+  const target = new ast.Node(tkSequence[3], ops.Operators.or);
+  const negation = new ast.Node(tkSequence[0], ops.Operators.not);
+  const explosion = new ast.Node(tkSequence[2], ops.Operators['*']);
   explosion.addChild(new ast.Node(tkSequence[1]));
   negation.addChild(explosion);
 
@@ -168,11 +169,11 @@ describe('parsing a path', function () {
   ];
   const parser = new btriev.Parser();
 
-  const target = new ast.Node(tkSequence[7], ast.Operators.and);
-  const negation = new ast.Node(tkSequence[0], ast.Operators.not);
-  const path1 = new ast.Node(tkSequence[2], ast.Operators['>']);
-  const path2 = new ast.Node(tkSequence[4], ast.Operators['>']);
-  const explosion = new ast.Node(tkSequence[6], ast.Operators['*']);
+  const target = new ast.Node(tkSequence[7], ops.Operators.and);
+  const negation = new ast.Node(tkSequence[0], ops.Operators.not);
+  const path1 = new ast.Node(tkSequence[2], ops.Operators['>']);
+  const path2 = new ast.Node(tkSequence[4], ops.Operators['>']);
+  const explosion = new ast.Node(tkSequence[6], ops.Operators['*']);
 
   path2.addChild(new ast.Node(tkSequence[3]));
   path2.addChild(new ast.Node(tkSequence[5]));
@@ -190,3 +191,5 @@ describe('parsing a path', function () {
     assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
   });
 });
+
+// TODO tests for invalid syntax

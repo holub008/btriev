@@ -14,6 +14,22 @@ class ParseError extends Error {
   }
 }
 
+class InvalidTagError extends ParseError {
+  constructor(token) {
+    const message = `Tag name '${token.getValue()}' does not exist`;
+    super(message, token.getStartIndex(), token.getEndIndex());
+  }
+}
+
+class InvalidPathError extends ParseError {
+  constructor(token) {
+    super(`Path does not exist`, token.getStartIndex(), token.getEndIndex());
+  }
+
+}
+
 module.exports = {
   ParseError,
+  InvalidTagError,
+  InvalidPathError,
 };

@@ -1,5 +1,6 @@
 const tk = require('./tokens');
 const ast = require('./ast');
+const ops = require('./operators');
 const err = require('./errors');
 
 function getIndexEdges(root) {
@@ -31,14 +32,69 @@ function shouldBackProcess(node, operatorStack) {
   const topOperatorLiteral = operatorStack[operatorStack.length - 1].getOperator();
   const currentOperatorLiteral = node.getOperator();
 
-  if (topOperatorLiteral === ast.Operators['(']) {
+  if (topOperatorLiteral === ops.Operators['(']) {
     return false;
   }
 
   return topOperatorLiteral.getPrecedence() > currentOperatorLiteral.getPrecedence();
 }
 
+/**
+ * NOTE: this function validates that
+ * @param node the Node root to start searching & flattening from
+ * @param parent the parent Node of the start Node
+ * @return should be ignored - modifies the AST in place
+ */
+function flattenPathing(node, tagHierarchy, parent=null) {
+  const operator = node.getOperator();
+
+  // case we have a tag, which will only occur on the leaf nodes
+  if (!operator) {
+    if (parent && parent.getOperator() === ops.Operator['>']) {
+      return [node];
+    }
+    // else the return value is irrelevant and will be ignored
+  }
+  else if (operator === ops.Operators['>']) {
+    const childPath = flattenPathing(node.getChildren()[1], tagHierarchy, node);
+    childPath.unshift(node.getChildren()[0])
+
+    // if the parent is no longer a path operator, it's time to stop flattening
+    if (!parent || (parent && parent.getOperator() !== ops.Operators['>'])) {
+      const validPath = tagHierarchy.pathExists(childPath.map(n => n.getToken().getValue()));
+      if (!validPath) {
+        throw new err.InvalidPathError(node.getToken());
+      }
+      node.setChildren(childPath);
+      return [];
+    }
+    else {
+      return childPath;
+    }
+  }
+  else {
+    // continue our traversal down, ignoring anything that gets returned
+    // we can ignore because we know that path operators have already been verified to only be at the final branches (before tags) of the AST
+    node.getChildren().forEach(n => flattenPathing(n, tagHierarchy, node));
+  }
+}
+
+function restructureAST(ast, tagHierarchy) {
+
+  // check that explode is only applied to tags
+  // check that pathing is only applied to tags
+
+  // put all tags flat underneath the path operator & check that paths are valid
+  flattenPathing(ast);
+}
+
 class Parser {
+  /**
+   * @param tagHierarchy when null, no tag name checking is done. when supplied, tag names are verified
+   */
+  constructor(tagHierarchy=null) {
+    this._tagHierarchy = tagHierarchy;
+  }
 
   parse(tokens) {
     let expressions = [];
@@ -46,31 +102,35 @@ class Parser {
 
     tokens.forEach(t => {
       if (t.getType() === tk.TokenType.TAG) {
+        // TODO this is a linear scan, which could be made to a binary search
+        if (this._tagHierarchy && !this._tagHierarchy.containsTag(t.getValue())) {
+          throw new err.InvalidTagError(t);
+        }
         expressions.push(new ast.Node(t));
       }
       else if (t.getType() === tk.TokenType.OPERATOR) {
-        const operatorLiteral = ast.Operators[t.getValue()];
+        const operatorLiteral = ops.Operators[t.getValue()];
 
         if (!operatorLiteral) {
           throw new Error(`Unknown operator: ${t.getValue()}`);
         }
         const node = new ast.Node(t, operatorLiteral);
 
-        if (operatorLiteral === ast.Operators["("]) {
+        if (operatorLiteral === ops.Operators["("]) {
           // this is a hardcode - assuming parens are highest prio
           operatorStack.push(node);
         }
-        else if (operatorLiteral === ast.Operators[')']) {
+        else if (operatorLiteral === ops.Operators[')']) {
           // parse everything until the open parens
           let popped = operatorStack.pop();
-          while (popped && popped.getOperator() !== ast.Operators['(']) {
+          while (popped && popped.getOperator() !== ops.Operators['(']) {
             popped.attachToAST(expressions);
             popped = operatorStack.pop();
           }
 
           // case we ran through everything without finding the close parens - error location is the close paren
           if (!popped) {
-            throw new err.ParseError(`Unmatched ${ast.Operators[')'].getDisplayName()}`,
+            throw new err.ParseError(`Unmatched ${ops.Operators[')'].getDisplayName()}`,
               t.getStartIndex(), t.getEndIndex());
           }
         }

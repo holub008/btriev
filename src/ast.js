@@ -1,4 +1,5 @@
 const err = require('./errors');
+const ops = require('./operators');
 
 class Node {
 
@@ -21,7 +22,7 @@ class Node {
      * note, this method makes assumptions about how the token & expression stack is populated. it should be assumed "package private"\
      * `this` object is mutated, and expressions is mutated (this is done in place for performance reasons :|)
      */
-    if (this._operator.getPlacement() === OperatorPlacement.INFIX) {
+    if (this._operator.getPlacement() === ops.OperatorPlacement.INFIX) {
       // always pop from the back
       const rhs = expressions.pop();
       const lhs = expressions.pop();
@@ -35,7 +36,7 @@ class Node {
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this._operator.getPlacement() === OperatorPlacement.LEFT) {
+    else if (this._operator.getPlacement() === ops.OperatorPlacement.LEFT) {
       const rhs = expressions.pop();
 
       if (!rhs) {
@@ -45,7 +46,7 @@ class Node {
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this._operator.getPlacement() === OperatorPlacement.RIGHT) {
+    else if (this._operator.getPlacement() === ops.OperatorPlacement.RIGHT) {
       const lhs = expressions.pop();
 
       if (!lhs) {
@@ -60,15 +61,25 @@ class Node {
     }
   }
 
+  /**
+   * add a child node, incrementally
+   */
   addChild(node) {
-    /*
-        note, calls are order sensitive
-     */
     this._children.push(node);
   }
 
+  /**
+   * get the nodes children, in their current state
+   */
   getChildren() {
     return this._children;
+  }
+
+  /**
+   * set the node's children, completely overwriting prior children
+   */
+  setChildren(children) {
+    this._children = children;
   }
 
   equals(other) {
@@ -131,52 +142,8 @@ function nodesEqual(left, right, verbose, depth=0) {
   }
 }
 
-const OperatorPlacement = {
-  INFIX: 'infix',
-  LEFT: 'left',
-  RIGHT: 'right',
-};
-
-class Operator {
-  constructor(placement, arity, precedence, displayName) {
-    this._placement = placement;
-    this._arity = arity;
-    this._precedence = precedence;
-    this._displayName = displayName;
-  }
-
-  getPlacement() {
-    return this._placement;
-  }
-
-  getArity() {
-    return this._arity;
-  }
-
-  getPrecedence() {
-    return this._precedence;
-  }
-
-  getDisplayName() {
-    return this._displayName;
-  }
-}
-
-// note, this omits the quote operator, which is only meaningful for lexing
-const Operators = {
-  '(': new Operator(OperatorPlacement.LEFT, NaN, 6, 'open parenthesis'),
-  ')': new Operator(OperatorPlacement.RIGHT, NaN, 6, 'close Parenthesis'),
-  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator'),
-  '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator'),
-  'not': new Operator(OperatorPlacement.LEFT, 1, 3, 'NOT'),
-  'and': new Operator(OperatorPlacement.INFIX, 2, 2, 'AND'),
-  'or': new Operator(OperatorPlacement.INFIX, 2, 1, 'OR'),
-};
 
 module.exports = {
   Node,
-  Operator,
-  Operators,
-  OperatorPlacement,
   nodesEqual,
 };
