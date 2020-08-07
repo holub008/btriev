@@ -1,24 +1,10 @@
 
-function buildInvertedIndex(names) {
-  const index = {};
-  names.forEach((n, ix) => {
-    if (index[n]) {
-      index[n].push(ix);
-    }
-    else {
-      index[n] = [ix];
-    }
-  });
-
-  return index;
-}
-
 function recurseListCombinations(data) {
   if (data.length === 0) {
     return [];
   }
   else if (data.length === 1) {
-    return data[0];
+    return data[0].map(x => [x]);
   }
 
   const focusList = data[0];
@@ -43,7 +29,7 @@ function recurseListCombinations(data) {
  */
 function bfsCollect(root, adjacency, collector=new Set()) {
   adjacency[root].forEach(ix => {
-    if (!(ix in collector)) {
+    if (!collector.has(ix)) {
       collector.add(ix);
       bfsCollect(ix, adjacency, collector);
     }
@@ -63,7 +49,7 @@ class TagHierarchy {
         tagNameToIndices[t.name] = [ix];
       }
       else {
-        tagNameToIndices.push(ix);
+        tagNameToIndices[t.name].push(ix);
       }
     });
 
@@ -107,21 +93,23 @@ class TagHierarchy {
    */
   getIndicesForPath(indexPath) {
     const candidatePaths = recurseListCombinations(indexPath);
-    const validPaths = [];
+    const matchingIndices = [];
     candidatePaths.forEach(p => {
       let exists = true;
       for (let ix = 0; ix < (p.length - 1); ix++) {
         const fromIx = p[ix];
         const toIx = p[ix + 1];
-        exists = toIx in this._adjacency[fromIx];
+        if (!this._adjacency[fromIx].includes(toIx)) {
+          exists = false;
+        }
       }
 
       if (exists) {
-        validPaths.push(p);
+        matchingIndices.push(p[p.length - 1]);
       }
     });
 
-    return validPaths;
+    return matchingIndices;
   }
 
   explode(indices) {
@@ -129,6 +117,7 @@ class TagHierarchy {
     // implementation. we can safely share the collector, to the benefit of not repeating work
     const collector = new Set();
     indices.forEach(root => {
+      collector.add(root);
       bfsCollect(root, this._adjacency, collector);
     });
 
