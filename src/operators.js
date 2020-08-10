@@ -47,15 +47,29 @@ function notEvaluated() {
 const Operators = {
   '(': new Operator(OperatorPlacement.LEFT, NaN, 6, 'open parenthesis', notEvaluated),
   ')': new Operator(OperatorPlacement.RIGHT, NaN, 6, 'close parenthesis', notEvaluated),
-  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator', notEvaluated),
-  '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator', notEvaluated),
+  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator', ),
+  '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator', ),
   'not': new Operator(OperatorPlacement.LEFT, 1, 3, 'NOT', ),
   'and': new Operator(OperatorPlacement.INFIX, 2, 2, 'AND'),
   'or': new Operator(OperatorPlacement.INFIX, 2, 1, 'OR'),
 };
 
-// data ops - these assume the ids are sorted
-function intersect(context, left, right) {
+function path(context, ...children) {
+  const hierarchy = context.getTagHierarchy();
+
+  hierarchy.getIndicesForPath(children);
+}
+
+function intersectHandler(context, children) {
+  if (children.length !== 2) {
+    throw new Error('Intersection must be applied to exactly two operands!');
+  }
+
+  const data = children.map(c => c.getData());
+
+}
+
+function intersect(left, right) {
   if (left.length === 0 || right.length === 0) {
     return [];
   }
@@ -114,10 +128,12 @@ function union(context, left, right) {
   return union;
 }
 
-function negate(data, all) {
+function negate(context, data) {
   if (data.length === 0) {
     return all;
   }
+
+  const all = context.getAllRows();
 
   let dataIx = 0;
   let allIx = 0;
