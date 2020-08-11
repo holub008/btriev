@@ -1,3 +1,5 @@
+const er = require('./evaluation_result');
+
 const OperatorPlacement = {
   INFIX: 'infix',
   LEFT: 'left',
@@ -30,12 +32,12 @@ class Operator {
   }
 
   evaluate(context, ...args) {
-    /**
-    if (args.length !== this.getArity()) {
+    const arity = this.getArity();
+    if (!isNaN(arity) && args.length !== arity) {
       throw new Error(`Invalid call to operator ${this.getDisplayName()}: ${this.getArity()} args expected, ${args.length} supplied`);
     }
-     */
-    return this._evaluateMethod(context, args);
+
+    return this._evaluateMethod(context, ...args);
   }
 }
 
@@ -47,26 +49,60 @@ function notEvaluated() {
 const Operators = {
   '(': new Operator(OperatorPlacement.LEFT, NaN, 6, 'open parenthesis', notEvaluated),
   ')': new Operator(OperatorPlacement.RIGHT, NaN, 6, 'close parenthesis', notEvaluated),
-  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator', ),
-  '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator', ),
-  'not': new Operator(OperatorPlacement.LEFT, 1, 3, 'NOT', ),
-  'and': new Operator(OperatorPlacement.INFIX, 2, 2, 'AND'),
-  'or': new Operator(OperatorPlacement.INFIX, 2, 1, 'OR'),
+  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator', path),
+  '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator', explode),
+  'not': new Operator(OperatorPlacement.LEFT, 1, 3, 'NOT', negateHandler),
+  'and': new Operator(OperatorPlacement.INFIX, 2, 2, 'AND', intersectHandler),
+  'or': new Operator(OperatorPlacement.INFIX, 2, 1, 'OR', unionHandler),
 };
 
-function path(context, ...children) {
+function path(context, ...operands) {
   const hierarchy = context.getTagHierarchy();
+  const tagIxs = hierarchy.getIndicesForPath(operands.map(o => o.getTagIndices()));
 
-  hierarchy.getIndicesForPath(children);
+  return er.EvaluationResult.fromTagIxs(tagIxs);
 }
 
-function intersectHandler(context, children) {
-  if (children.length !== 2) {
-    throw new Error('Intersection must be applied to exactly two operands!');
+function explode(context, ...operands) {
+  const hierarchy = context.getTagHierarchy();
+  const tagIxs = hierarchy.explode(operands[0].getTagIndices())
+  return er.EvaluationResult.fromTagIxs(tagIxs);
+}
+
+function negateHandler(context, ...operands) {
+  const all = context.getAllRows();
+  const i = negate(all, operands[0].getDataIxs());
+  return er.EvaluationResult.fromData(i);
+}
+
+function negate(all, data) {
+  if (data.length === 0) {
+    return all;
   }
 
-  const data = children.map(c => c.getData());
+  let dataIx = 0;
+  let allIx = 0;
+  let negation = [];
+  while (dataIx <= data.length && allIx <= all.length) {
+    if (data[dataIx] < all[allIx]) {
+      dataIx++;
+    }
+    else if (data[dataIx] > all[allIx]) {
+      negation.push(all[allIx]);
+      allIx++;
+    }
+    else {
+      dataIx++;
+      allIx++;
+    }
+  }
 
+  return negation;
+}
+
+function intersectHandler(context, ...operands) {
+  const i = intersect(operands[0].getDataIxs(), operands[1].getDataIxs());
+  return er.EvaluationResult.fromData(i);
 }
 
 function intersect(left, right) {
@@ -92,6 +128,11 @@ function intersect(left, right) {
   }
 
   return intersection;
+}
+
+function unionHandler(context, ...operands) {
+  const u = union(operands[0].getDataIxs(), operands[1].getDataIxs());
+  return er.EvaluationResult.fromData(u);
 }
 
 function union(context, left, right) {
@@ -126,33 +167,6 @@ function union(context, left, right) {
   }
 
   return union;
-}
-
-function negate(context, data) {
-  if (data.length === 0) {
-    return all;
-  }
-
-  const all = context.getAllRows();
-
-  let dataIx = 0;
-  let allIx = 0;
-  let negation = [];
-  while (dataIx <= data.length && allIx <= all.length) {
-    if (data[dataIx] < all[allIx]) {
-      dataIx++;
-    }
-    else if (data[dataIx] > all[allIx]) {
-      negation.push(all[allIx]);
-      allIx++;
-    }
-    else {
-      dataIx++;
-      allIx++;
-    }
-  }
-
-  return negation;
 }
 
 module.exports = {

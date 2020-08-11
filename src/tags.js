@@ -61,24 +61,29 @@ class TagHierarchy {
       fromArr.push(toIx);
     });
 
-    return new TagHierarchy(adjacency, tagNameToIndices);
+    return new TagHierarchy(adjacency, tagNameToIndices, tagIdToIndex);
   }
 
+  #adjacency;
+  #tagNameToIndices;
+
   /**
+   * note, this constructor should effectively be treated as private - see static constructor createFromEdgeList
    * @param adjacency an array of array of indices, representing a sparse graph adjacency matrix
    * @param tagNameToIndices an object with key tag names and value index into the adjacency matrix
+   * @param tagIdToIndex maps an external tag id to an index
    */
-  constructor(adjacency, tagNameToIndices) {
-    this._adjacency = adjacency;
-    this._tagNameToIndices = tagNameToIndices;
+  constructor(adjacency, tagNameToIndices, tagIdToIndex) {
+    this.#adjacency = adjacency;
+    this.#tagNameToIndices = tagNameToIndices;
   }
 
   containsTag(name) {
-    return this._tagNameToIndices[name] !== undefined;
+    return this.#tagNameToIndices[name] !== undefined;
   }
 
   getIndices(tagName) {
-    const indices = this._tagNameToIndices[tagName];
+    const indices = this.#tagNameToIndices[tagName];
     if (!indices) {
       return [];
     }
@@ -99,7 +104,7 @@ class TagHierarchy {
       for (let ix = 0; ix < (p.length - 1); ix++) {
         const fromIx = p[ix];
         const toIx = p[ix + 1];
-        if (!this._adjacency[fromIx].includes(toIx)) {
+        if (!this.#adjacency[fromIx].includes(toIx)) {
           exists = false;
         }
       }
@@ -118,7 +123,7 @@ class TagHierarchy {
     const collector = new Set();
     indices.forEach(root => {
       collector.add(root);
-      bfsCollect(root, this._adjacency, collector);
+      bfsCollect(root, this.#adjacency, collector);
     });
 
     return [...collector]

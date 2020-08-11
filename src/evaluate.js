@@ -1,5 +1,6 @@
 const lex = require('./lexer');
 const parse = require('./parser');
+const er = require('./evaluation_result');
 
 /**
  * @param query a string btriev query
@@ -9,58 +10,46 @@ const parse = require('./parser');
 function evaluate(query, data, tagHierarchy) {
   const lexer = new lex.Lexer();
   const parser = new parse.Parser(tagHierarchy);
-
   const ast = parser.parse(lexer.tokenize(query));
+  const context = new EvaluationContext(tagHierarchy, data);
+  const result = dfsEvaluate(ast, context)
+
+  return result.getDataIxs(context);
 }
 
 class EvaluationContext {
-
+  #tagHierarchy;
+  #allRows;
+  #data;
   constructor(tagHierarchy, data) {
-    this._tagHierarchy = tagHierarchy;
-
+    this.#tagHierarchy = tagHierarchy;
+    this.#data = data;
+    this.#allRows = Array(data.length).fill().map((_, i) => i);
   }
 
   getTagHierarchy() {
-    return this._tagHierarchy
-  }
-
-  getAllRows()  {
-    return this._allRows;
-  }
-}
-
-/**
- * a mutable holder for intermediate evaluation results
- * since we have operators on two different types, "results" may pertain to either tags or data
- * there is an order independence, since all tag evaluations must occur before data evaluations
- * once a data operation has been made (i.e. the EvaluationResult is asked for rows of data)
- * future requests for tag evaluation results will be met with an exception (which should only be developer facing, if
- * the AST was properly vetted)
- */
-class EvaluationResult {
-
-  constructor() {
-
+    return this.#tagHierarchy
   }
 
   getData() {
-
+    return this.#data;
   }
 
-  getTags() {
-
+  getAllRows()  {
+    return this.#allRows;
   }
-
 }
 
-
 function dfsEvaluate(ast, context) {
-  const childEvaluations = ast.getChildren().forEach(n => {
-    return dfsEvaluate(n, context);
-  });
-
   const operator = ast.getOperator();
   if (operator) {
+    const childEvaluations = ast.getChildren().map(n => {
+      return dfsEvaluate(n, context);
+    });
     operator.evaluate(context, childEvaluations);
+  }
+  else {
+    // note, we assume that tags may only occur at the roots - i.e. we ignore children
+    return er.EvaluationResult.fromTag(ast.getToken().getValue(), context.getTagHierarchy());
   }
 }
