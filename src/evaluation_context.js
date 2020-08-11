@@ -1,11 +1,10 @@
 class EvaluationContext {
   #tagHierarchy;
-  #allRows;
   #data;
+
   constructor(tagHierarchy, data) {
     this.#tagHierarchy = tagHierarchy;
     this.#data = data;
-    this.#allRows =
   }
 
   getTagHierarchy() {
