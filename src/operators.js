@@ -58,15 +58,16 @@ const Operators = {
 
 function path(context, ...operands) {
   const hierarchy = context.getTagHierarchy();
-  const tagIxs = hierarchy.getIndicesForPath(operands.map(o => o.getTagIndices()));
+  const tagIds = hierarchy.getIdsForPath(operands.map(o => o.getTagIds()));
 
-  return er.EvaluationResult.fromTagIxs(tagIxs);
+  return er.EvaluationResult.fromTagIds(tagIds);
 }
 
 function explode(context, ...operands) {
   const hierarchy = context.getTagHierarchy();
-  const tagIxs = hierarchy.explode(operands[0].getTagIndices())
-  return er.EvaluationResult.fromTagIxs(tagIxs);
+  const tagIds = hierarchy.explode(operands[0].getTagIds());
+
+  return er.EvaluationResult.fromTagIds(tagIds);
 }
 
 function negateHandler(context, ...operands) {

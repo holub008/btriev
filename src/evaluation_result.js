@@ -9,31 +9,31 @@
 class EvaluationResult {
 
   static fromTag(tagName, hierarchy) {
-    return new EvaluationResult(undefined, hierarchy.getIndices(tagName));
+    return new EvaluationResult(undefined, hierarchy.getIds(tagName));
   }
 
   static fromData(dataIxs) {
     return new EvaluationResult(dataIxs);
   }
 
-  static fromTagIxs(tagIxs) {
-    return new EvaluationResult(undefined, tagIxs);
+  static fromTagIds(tagIds) {
+    return new EvaluationResult(undefined, tagIds);
   }
 
   #dataIxs;
-  #tagIxs;
+  #tagIds;
 
-  constructor(dataIxs, tagIxs) {
-    if (!dataIxs && !tagIxs) {
+  constructor(dataIxs, tagIds) {
+    if (!dataIxs && !tagIds) {
       throw new Error('Cannot construct an evaluation result without either tags or data');
     }
 
-    if (dataIxs && tagIxs) {
+    if (dataIxs && tagIds) {
       throw new Error('Cannot construct an evaluation result with both tags and data');
     }
 
     this.#dataIxs = dataIxs;
-    this.#tagIxs = tagIxs;
+    this.#tagIds = tagIds;
   }
 
   /**
@@ -50,11 +50,11 @@ class EvaluationResult {
     }
   }
 
-  getTagIndices() {
-    if (!this.#tagIxs) {
+  getTagIds() {
+    if (!this.#tagIds) {
       throw new Error('Attempting to tags from a data based evaluation result');
     }
-    return this.#tagIxs;
+    return this.#tagIds;
   }
 }
 

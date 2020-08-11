@@ -39,27 +39,22 @@ describe('depth 3 tag hierarchy with unique tag names', function () {
   ];
 
   const hierarchy = tg.TagHierarchy.createFromEdgeList(edges, tags);
-  const oneIx = hierarchy.getIndices('tag1');
-  const twoIx = hierarchy.getIndices('tag2');
-  const threeIx = hierarchy.getIndices('tag3');
-  const fourIx = hierarchy.getIndices('tag4');
 
   it('should properly explode tags', function () {
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(oneIx)), new Set([oneIx[0],
-      twoIx[0],
-      threeIx[0],
-      fourIx[0]])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(twoIx)), new Set([ twoIx[0], fourIx[0]])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(fourIx)), new Set(fourIx)));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(1)), new Set([1, 2, 3, 4])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(2)), new Set([2, 4])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(4)), new Set([4])));
   });
 
   it('should properly identify paths', function () {
-    assert.deepStrictEqual(hierarchy.getIndicesForPath([]), []);
-    assert.ok(utils.setEqual(new Set(hierarchy.getIndicesForPath([oneIx])), new Set(oneIx)));
+    assert.strictEqual(hierarchy.getIds('tag3'), [3]);
 
-    assert.ok(utils.setEqual(new Set(hierarchy.getIndicesForPath([oneIx, twoIx])), new Set(twoIx)));
+    assert.deepStrictEqual(hierarchy.getIdsForPath([]), []);
+    assert.ok(utils.setEqual(new Set(hierarchy.getIdsForPath([[1]])), new Set([1])));
+
+    assert.ok(utils.setEqual(new Set(hierarchy.getIdsForPath([[1], [2]])), new Set([2])));
     // paths that don't exist should yield no indices
-    assert.deepStrictEqual(hierarchy.getIndicesForPath([oneIx, fourIx]), []);
+    assert.deepStrictEqual(hierarchy.getIdsForPath([[1], [4]]), []);
   });
 });
 
@@ -131,32 +126,28 @@ describe('depth 4 tag hierarchy with non-unique tag names', function () {
   ];
 
   const hierarchy = tg.TagHierarchy.createFromEdgeList(edges, tags);
-  const oneIx = hierarchy.getIndices('tag1');
-  const aIx = hierarchy.getIndices('dupeA');
-  const bIx = hierarchy.getIndices('dupeB');
-  const threeIx = hierarchy.getIndices('tag3');
-  const sixIx = hierarchy.getIndices('tag6');
-  const sevenIx = hierarchy.getIndices('tag7');
 
   it('should properly explode unique tags', function () {
     // a leaf should explode only to itself
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(sevenIx)), new Set(sevenIx)));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(7)), new Set([7])));
   });
 
   it('should properly explode non-unique tags', function () {
     assert.deepStrictEqual(hierarchy.explode([]), []);
 
-    const aExplosion = new Set(hierarchy.explode(aIx));
+    const aExplosion = new Set(hierarchy.explode(4));
     // the explosion should contain the 2 dupeAs, 2 dupeBs, tag6 & tag7
-    assert.ok(utils.setEqual(aExplosion, new Set([...aIx, ...bIx, ...sixIx, ...sevenIx])));
+    assert.ok(utils.setEqual(aExplosion, new Set([4, 8, 6, 7])));
   });
 
   it('should properly identify paths', function () {
-    const uniqueA = new Set(hierarchy.getIndicesForPath([oneIx, threeIx, aIx]));
-    assert.ok(utils.setEqual(uniqueA, new Set([aIx[1]])));
+    assert.ok(utils.setEqual(new Set(hierarchy.getIds('dupeA')), new Set([2, 4])))
 
-    const allAToB = new Set(hierarchy.getIndicesForPath([aIx, bIx]));
-    assert.ok(utils.setEqual(allAToB, new Set(bIx)));
+    const uniqueA = new Set(hierarchy.getIdsForPath([[1], [3], [2, 4]]));
+    assert.ok(utils.setEqual(uniqueA, new Set([4])));
+
+    const allAToB = new Set(hierarchy.getIdsForPath([[2, 4], [5, 8]]));
+    assert.ok(utils.setEqual(allAToB, new Set([5, 8])));
   });
 });
 
@@ -194,27 +185,24 @@ describe('tag hierarchy with a loop', function () {
   ];
 
   const hierarchy = tg.TagHierarchy.createFromEdgeList(edges, tags);
-  const oneIx = hierarchy.getIndices('tag1');
-  const twoIx = hierarchy.getIndices('tag2');
-  const threeIx = hierarchy.getIndices('tag3');
 
   it('should explode properly', function () {
     // due to the cycle, exploding these should lead to a BFS of all tags
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(oneIx)), new Set([...oneIx, ...twoIx, ...threeIx])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(threeIx)), new Set([...oneIx, ...twoIx, ...threeIx])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(101)), new Set([101, 102, 103])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(103)), new Set([101, 102, 103])));
 
     // this tag has no out edges, so doesn't explode
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(twoIx)), new Set(twoIx)));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode(102)), new Set([102])));
   });
 
   it('should path properly', function () {
-    const oneThree = new Set(hierarchy.getIndicesForPath([oneIx, threeIx]));
-    assert.ok(utils.setEqual(oneThree, new Set(threeIx)));
+    const oneThree = new Set(hierarchy.getIdsForPath([[101], [103]]));
+    assert.ok(utils.setEqual(oneThree, new Set([103])));
 
-    const threeOne = new Set(hierarchy.getIndicesForPath([threeIx, oneIx]));
-    assert.ok(utils.setEqual(threeOne, new Set(oneIx)));
+    const threeOne = new Set(hierarchy.getIdsForPath([[103], [101]]));
+    assert.ok(utils.setEqual(threeOne, new Set([101])));
 
-    const twoPath = new Set(hierarchy.getIndicesForPath([oneIx, twoIx]));
-    assert.ok(utils.setEqual(twoPath, new Set(twoPath)));
+    const twoPath = new Set(hierarchy.getIdsForPath([[101], [102]]));
+    assert.ok(utils.setEqual(twoPath, new Set([102])));
   });
 });
