@@ -71,8 +71,8 @@ function explode(context, ...operands) {
 }
 
 function negateHandler(context, ...operands) {
-  const all = context.getAllRows();
-  const i = negate(all, operands[0].getDataIxs());
+  const all = context.getDataStore().getAllDataIds();
+  const i = negate(all, operands[0].getDataIds());
   return er.EvaluationResult.fromData(i);
 }
 
@@ -102,7 +102,7 @@ function negate(all, data) {
 }
 
 function intersectHandler(context, ...operands) {
-  const i = intersect(operands[0].getDataIxs(), operands[1].getDataIxs());
+  const i = intersect(operands[0].getDataIds(), operands[1].getDataIds());
   return er.EvaluationResult.fromData(i);
 }
 
@@ -132,7 +132,7 @@ function intersect(left, right) {
 }
 
 function unionHandler(context, ...operands) {
-  const u = union(operands[0].getDataIxs(), operands[1].getDataIxs());
+  const u = union(operands[0].getDataIds(), operands[1].getDataIds());
   return er.EvaluationResult.fromData(u);
 }
 

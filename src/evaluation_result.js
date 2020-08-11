@@ -20,33 +20,33 @@ class EvaluationResult {
     return new EvaluationResult(undefined, tagIds);
   }
 
-  #dataIxs;
+  #dataIds;
   #tagIds;
 
-  constructor(dataIxs, tagIds) {
-    if (!dataIxs && !tagIds) {
+  constructor(dataIds, tagIds) {
+    if (!dataIds && !tagIds) {
       throw new Error('Cannot construct an evaluation result without either tags or data');
     }
 
-    if (dataIxs && tagIds) {
+    if (dataIds && tagIds) {
       throw new Error('Cannot construct an evaluation result with both tags and data');
     }
 
-    this.#dataIxs = dataIxs;
+    this.#dataIds = dataIds;
     this.#tagIds = tagIds;
   }
 
   /**
-   * for data operations, return the index result
+   * for data operations, return the result as ids
    * for tag operations, lazily evaluate which data pertain to the previously specified tag(s)
    * @param context an EvaluationContext object
    */
-  getDataIxs(context) {
-    if (this.#dataIxs) {
-      return this.#dataIxs;
+  getDataIds(context) {
+    if (this.#dataIds) {
+      return this.#dataIds;
     }
     else {
-      return context.ge
+      return context.getDataStore().getDataIdsForTagIds(this.#tagIds);
     }
   }
 

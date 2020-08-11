@@ -1,6 +1,7 @@
 const lex = require('./lexer');
 const parse = require('./parser');
 const er = require('./evaluation_result');
+const ec = require('./evaluation_context');
 
 /**
  * @param query a string btriev query
@@ -11,33 +12,10 @@ function evaluate(query, data, tagHierarchy) {
   const lexer = new lex.Lexer();
   const parser = new parse.Parser(tagHierarchy);
   const ast = parser.parse(lexer.tokenize(query));
-  const context = new EvaluationContext(tagHierarchy, data);
+  const context = new ec.EvaluationContext(tagHierarchy, data);
   const result = dfsEvaluate(ast, context)
 
-  return result.getDataIxs(context);
-}
-
-class EvaluationContext {
-  #tagHierarchy;
-  #allRows;
-  #data;
-  constructor(tagHierarchy, data) {
-    this.#tagHierarchy = tagHierarchy;
-    this.#data = data;
-    this.#allRows = Array(data.length).fill().map((_, i) => i);
-  }
-
-  getTagHierarchy() {
-    return this.#tagHierarchy
-  }
-
-  getData() {
-    return this.#data;
-  }
-
-  getAllRows()  {
-    return this.#allRows;
-  }
+  return result.getDataIds(context);
 }
 
 function dfsEvaluate(ast, context) {
