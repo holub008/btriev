@@ -42,14 +42,14 @@ class TagHierarchy {
 
   static createFromEdgeList(edgeList, tags) {
     const tagIdToIndex = {};
-    const tagNameToIndices = {};
+    const tagNameToIds = {};
     tags.forEach((t, ix) => {
       tagIdToIndex[t.id] = ix;
-      if (!tagNameToIndices[t.name]) {
-        tagNameToIndices[t.name] = [ix];
+      if (!tagNameToIds[t.name]) {
+        tagNameToIds[t.name] = [t.id];
       }
       else {
-        tagNameToIndices[t.name].push(ix);
+        tagNameToIds[t.name].push(t.id);
       }
     });
 
@@ -61,7 +61,7 @@ class TagHierarchy {
       fromArr.push(toIx);
     });
 
-    return new TagHierarchy(adjacency, tagNameToIndices, tagIdToIndex);
+    return new TagHierarchy(adjacency, tagNameToIds, tagIdToIndex);
   }
 
   #adjacency;
@@ -81,8 +81,8 @@ class TagHierarchy {
     this.#tagIdToIndex = tagIdToIndex;
 
     const indexToTagId = {};
-    Object.values(tagIdToIndex).forEach((id, ix) => {
-      indexToTagId[ix] = id;
+    Object.entries(tagIdToIndex).forEach(([id, ix]) => {
+      indexToTagId[ix] = parseInt(id);
     });
     this.#indexToTagId = indexToTagId;
   }

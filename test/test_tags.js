@@ -41,13 +41,13 @@ describe('depth 3 tag hierarchy with unique tag names', function () {
   const hierarchy = tg.TagHierarchy.createFromEdgeList(edges, tags);
 
   it('should properly explode tags', function () {
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(1)), new Set([1, 2, 3, 4])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(2)), new Set([2, 4])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(4)), new Set([4])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([1])), new Set([1, 2, 3, 4])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([2])), new Set([2, 4])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([4])), new Set([4])));
   });
 
   it('should properly identify paths', function () {
-    assert.strictEqual(hierarchy.getIds('tag3'), [3]);
+    assert.deepStrictEqual(hierarchy.getIds('tag3'), [3]);
 
     assert.deepStrictEqual(hierarchy.getIdsForPath([]), []);
     assert.ok(utils.setEqual(new Set(hierarchy.getIdsForPath([[1]])), new Set([1])));
@@ -129,15 +129,15 @@ describe('depth 4 tag hierarchy with non-unique tag names', function () {
 
   it('should properly explode unique tags', function () {
     // a leaf should explode only to itself
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(7)), new Set([7])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([7])), new Set([7])));
   });
 
   it('should properly explode non-unique tags', function () {
     assert.deepStrictEqual(hierarchy.explode([]), []);
 
-    const aExplosion = new Set(hierarchy.explode(4));
+    const aExplosion = new Set(hierarchy.explode([2, 4]));
     // the explosion should contain the 2 dupeAs, 2 dupeBs, tag6 & tag7
-    assert.ok(utils.setEqual(aExplosion, new Set([4, 8, 6, 7])));
+    assert.ok(utils.setEqual(aExplosion, new Set([2, 4, 5, 8, 6, 7])));
   });
 
   it('should properly identify paths', function () {
@@ -188,11 +188,11 @@ describe('tag hierarchy with a loop', function () {
 
   it('should explode properly', function () {
     // due to the cycle, exploding these should lead to a BFS of all tags
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(101)), new Set([101, 102, 103])));
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(103)), new Set([101, 102, 103])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([101])), new Set([101, 102, 103])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([103])), new Set([101, 102, 103])));
 
     // this tag has no out edges, so doesn't explode
-    assert.ok(utils.setEqual(new Set(hierarchy.explode(102)), new Set([102])));
+    assert.ok(utils.setEqual(new Set(hierarchy.explode([102])), new Set([102])));
   });
 
   it('should path properly', function () {
