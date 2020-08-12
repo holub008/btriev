@@ -72,11 +72,11 @@ function explode(context, ...operands) {
 
 function negateHandler(context, ...operands) {
   const all = context.getDataStore().getAllDataIds();
-  const i = negate(all, operands[0].getDataIds());
-  return er.EvaluationResult.fromData(i);
+  const n = negate(operands[0].getDataIds(), all);
+  return er.EvaluationResult.fromData(n);
 }
 
-function negate(all, data) {
+function negate(data, all) {
   if (data.length === 0) {
     return all;
   }
@@ -84,7 +84,7 @@ function negate(all, data) {
   let dataIx = 0;
   let allIx = 0;
   let negation = [];
-  while (dataIx <= data.length && allIx <= all.length) {
+  while (dataIx < data.length && allIx < all.length) {
     if (data[dataIx] < all[allIx]) {
       dataIx++;
     }
@@ -114,7 +114,7 @@ function intersect(left, right) {
   let leftIx = 0;
   let rightIx = 0;
   let intersection = [];
-  while (leftIx <= left.length && rightIx <= right.length) {
+  while (leftIx < left.length && rightIx < right.length) {
     if (left[leftIx] < right[rightIx]) {
       leftIx++;
     }
@@ -136,15 +136,21 @@ function unionHandler(context, ...operands) {
   return er.EvaluationResult.fromData(u);
 }
 
-function union(context, left, right) {
-  if (left.length === 0 || right.length === 0) {
+function union(left, right) {
+  if (left.length === 0 && right.length === 0) {
     return [];
+  }
+  else if (left.length === 0) {
+    return right;
+  }
+  else if (right.length === 0) {
+    return left;
   }
 
   let leftIx = 0;
   let rightIx = 0;
   let union = [];
-  while (leftIx <= left.length && rightIx <= right.length) {
+  while (leftIx < left.length && rightIx < right.length) {
     if (left[leftIx] < right[rightIx]) {
       union.push(left[leftIx])
       leftIx++;

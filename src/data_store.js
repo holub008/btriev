@@ -13,6 +13,7 @@ function inferAllDataIds(index) {
   return [...uniqueDataIds];
 }
 
+// TODO verify data ids are unique in each tag array
 class DataStore {
   /**
    * if the data ids are not sorted in ascending order, use this entry point to sort
