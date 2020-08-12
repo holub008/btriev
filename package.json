@@ -28,9 +28,7 @@
     "url": "https://github.com/holub008/btriev/issues"
   },
   "homepage": "https://github.com/holub008/btriev#readme",
-  "dependencies": {
-    "dataframe-js": "^1.4.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "local-repl": "^4.0.0",
     "mocha": "^8.0.1",
