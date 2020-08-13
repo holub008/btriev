@@ -24,10 +24,14 @@ function dfsEvaluate(ast, context) {
     const childEvaluations = ast.getChildren().map(n => {
       return dfsEvaluate(n, context);
     });
-    operator.evaluate(context, childEvaluations);
+    return operator.evaluate(context, childEvaluations);
   }
   else {
     // note, we assume that tags may only occur at the roots - i.e. we ignore children
     return er.EvaluationResult.fromTag(ast.getToken().getValue(), context.getTagHierarchy());
   }
 }
+
+module.exports = {
+  evaluate,
+};

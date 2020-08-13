@@ -31,7 +31,7 @@ class Operator {
     return this._displayName;
   }
 
-  evaluate(context, ...args) {
+  evaluate(context, args) {
     const arity = this.getArity();
     if (!isNaN(arity) && args.length !== arity) {
       throw new Error(`Invalid call to operator ${this.getDisplayName()}: ${this.getArity()} args expected, ${args.length} supplied`);
@@ -72,7 +72,7 @@ function explode(context, ...operands) {
 
 function negateHandler(context, ...operands) {
   const all = context.getDataStore().getAllDataIds();
-  const n = negate(operands[0].getDataIds(), all);
+  const n = negate(operands[0].getDataIds(context), all);
   return er.EvaluationResult.fromData(n);
 }
 
@@ -102,7 +102,7 @@ function negate(data, all) {
 }
 
 function intersectHandler(context, ...operands) {
-  const i = intersect(operands[0].getDataIds(), operands[1].getDataIds());
+  const i = intersect(operands[0].getDataIds(context), operands[1].getDataIds(context));
   return er.EvaluationResult.fromData(i);
 }
 
@@ -132,7 +132,7 @@ function intersect(left, right) {
 }
 
 function unionHandler(context, ...operands) {
-  const u = union(operands[0].getDataIds(), operands[1].getDataIds());
+  const u = union(operands[0].getDataIds(context), operands[1].getDataIds(context));
   return er.EvaluationResult.fromData(u);
 }
 

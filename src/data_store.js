@@ -57,7 +57,7 @@ class DataStore {
       }
     });
 
-    return [...dataIds];
+    return [...dataIds].sort((a, b) => a - b);
   }
 
   getAllDataIds() {
