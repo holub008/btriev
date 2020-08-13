@@ -65,5 +65,8 @@ describe('negate operation', function () {
 
     const results2 = negate([11, 12, 13, 15], [5, 11, 12, 13, 14, 15]);
     assert.deepStrictEqual(results2, [5, 14]);
+
+    const results3 = negate([11, 12, 13], [5, 11, 12, 13, 14, 15]);
+    assert.deepStrictEqual(results3, [5, 14 ,15]);
   });
 });

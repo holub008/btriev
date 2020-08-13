@@ -98,6 +98,11 @@ function negate(data, all) {
     }
   }
 
+  while (allIx < all.length) {
+    negation.push(all[allIx]);
+    allIx++;
+  }
+
   return negation;
 }
 
