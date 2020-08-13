@@ -1,7 +1,7 @@
 function sortIndex(index) {
   const sortedIndex = {};
   Object.entries(index).forEach(([tagId, dataIds]) => {
-    sortedIndex[tagId] = dataIds.slice().sort();
+    sortedIndex[tagId] = dataIds.slice().sort((a, b) => a - b);
   })
 
   return sortedIndex;
@@ -25,10 +25,10 @@ class DataStore {
     let allDataIdsSorted;
     // if not supplied, we infer from the index
     if (!allDataIds) {
-      allDataIdsSorted = inferAllDataIds(invertedIndex).sort();
+      allDataIdsSorted = inferAllDataIds(invertedIndex).sort((a, b) => a - b);
     }
     else {
-      allDataIdsSorted = allDataIds.slice().sort();
+      allDataIdsSorted = allDataIds.slice().sort((a, b) => a - b);
     }
     return new DataStore(sortIndex(invertedIndex), allDataIdsSorted);
   }
@@ -49,9 +49,12 @@ class DataStore {
   getDataIdsForTagIds(tagIds) {
     const dataIds = new Set();
     tagIds.forEach(id => {
-      this.#tagIdToDataIds[id].forEach(did => {
-        dataIds.add(did);
-      });
+      const dids = this.#tagIdToDataIds[id];
+      if (dids) {
+        this.#tagIdToDataIds[id].forEach(did => {
+          dataIds.add(did);
+        });
+      }
     });
 
     return [...dataIds];
