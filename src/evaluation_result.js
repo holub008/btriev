@@ -52,7 +52,7 @@ class EvaluationResult {
 
   getTagIds() {
     if (!this.#tagIds) {
-      throw new Error('Attempting to tags from a data based evaluation result');
+      throw new Error('Attempting to access tags from a data based evaluation result');
     }
     return this.#tagIds;
   }

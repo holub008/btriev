@@ -84,14 +84,41 @@ function flattenPathing(node, tagHierarchy, parent=null) {
   }
 }
 
-function validateAndRestructureAST(ast, tagHierarhcy) {
+function validateOperators(node) {
+  const operator = node.getOperator();
+  if (!operator) {
+    if (node.getChildren().length > 0) {
+      // this is a developer facing error only - the parser should never produce this structure
+      throw new Error('Tag in AST should never have children');
+    }
+  }
+  else {
+    const arity = operator.getArity();
+    if ( !isNaN(arity) && arity !== node.getChildren().length) {
+      throw new err.ParseError(`${operator.getDisplayName()} expects ${arity} operands, but received ${node.getChildren().length}`,
+        node.getToken().getStartIndex(), node.getToken().getEndIndex());
+    }
+    // TODO formalize the concept of "tag operators" vs "data operators"?
+    if (operator === ops.Operators[">"] || operator === ops.Operators["*"]) {
+      const childrenAreTags = node.getChildren().every(n => {
+        const isTag = !n.getOperator();
+        const isTagOperator = n.getOperator() === ops.Operators[">"] || n.getOperator() === ops.Operators["*"];
+        return isTag || isTagOperator;
+      });
+      if (!childrenAreTags) {
+        throw new err.ParseError(`${operator.getDisplayName()} expects only tag operands`,
+          node.getToken().getStartIndex(), node.getToken().getEndIndex());
+      }
+    }
 
-  // TODO check that explode is only applied to tags
-  // TODO check that pathing is only applied to tags
-  // TODO validate operator arity (before flattening)
+    node.getChildren().forEach(n => validateOperators(n));
+  }
+}
 
+function validateAndRestructureAST(ast, tagHierarchy) {
+  validateOperators(ast);
   // put all tags flat underneath the path operator & check that paths are valid
-  flattenPathing(ast);
+  flattenPathing(ast, tagHierarchy);
 }
 
 class Parser {
@@ -162,8 +189,8 @@ class Parser {
 
     //this condition indicates that two operands were abutted, with no operator between them
     if (expressions.length > 1) {
-      const lhsEnd = getIndexEdges(expressions[0])[1];
-      const rhsStart = getIndexEdges(expressions[1])[0];
+      const lhsEnd = getIndexEdges(expressions[0])[1] + 1;
+      const rhsStart = getIndexEdges(expressions[1])[0] + 1;
       throw new err.ParseError('Expected an operator between expressions',
         lhsEnd, rhsStart);
     }

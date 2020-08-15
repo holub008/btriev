@@ -28,7 +28,7 @@ class Node {
       const lhs = expressions.pop();
 
       if (!rhs || !lhs) {
-        throw new err.ParseError(`Binary operator ${this._operator.getDisplayName()} requires left and right expressions to operate on.`,
+        throw new err.ParseError(`Binary ${this._operator.getDisplayName()} requires left and right expressions to operate on.`,
           this._token.getStartIndex(), this._token.getEndIndex());
       }
 
@@ -40,7 +40,8 @@ class Node {
       const rhs = expressions.pop();
 
       if (!rhs) {
-        throw new err.ParseError(`Left unary operator ${this._operator.getDisplayName()} requires an expression to operate on`);
+        throw new err.ParseError(`Left unary operator ${this._operator.getDisplayName()} requires an expression to operate on`,
+          this._token.getStartIndex(), this._token.getEndIndex());
       }
 
       this.addChild(rhs);
@@ -50,7 +51,8 @@ class Node {
       const lhs = expressions.pop();
 
       if (!lhs) {
-        throw new err.ParseError(`Right unary operator ${this._operator.getDisplayName()} requires an expression to operate on`);
+        throw new err.ParseError(`Right unary operator ${this._operator.getDisplayName()} requires an expression to operate on`,
+          this._token.getStartIndex(), this._token.getEndIndex());
       }
 
       this.addChild(lhs);

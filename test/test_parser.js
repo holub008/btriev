@@ -233,5 +233,3 @@ describe('parsing a path', function () {
     assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
   });
 });
-
-// TODO tests for invalid syntax

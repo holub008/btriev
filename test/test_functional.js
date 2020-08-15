@@ -167,6 +167,7 @@ describe('query battery with dataset1', function () {
     'tag12* and not dupeB': [103, 109, 112],
     'tag12 >dupeB Or tag1>"tag4">"tag dupe A"': [106, 110, 111],
     [multilineQuery]: [101, 102, 103, 104, 107, 108],
+    'tag1   and "tag5" AND ((dupeB OR tag12))': [101],
   };
 
   it('should correctly execute', function() {
@@ -175,5 +176,203 @@ describe('query battery with dataset1', function () {
       const dataIds = btriev.evaluate(query, data1, hierarchy);
       assert.deepStrictEqual(dataIds, expectedResult);
     })
+  });
+});
+
+describe('query battery with dataset2', function () {
+  const queryToResult = {
+    'tag1 AND tag2': [],
+    'tag12*': [103, 106, 109, 110, 111, 112],
+    'tag1 > tag3 > tag5': [101, 103],
+    'not dupeB': [99, 102, 103, 104, 107, 108, 109, 112, 113],
+    'tag12* and not dupeB': [103, 109, 112],
+  };
+
+  it('should correctly execute', function() {
+    Object.entries(queryToResult).forEach(([query, expectedResult], ix) => {
+      console.log(ix);
+      const dataIds = btriev.evaluate(query, data2, hierarchy);
+      assert.deepStrictEqual(dataIds, expectedResult);
+    })
+  });
+});
+
+function assertExceptions(expectedResults, data, hierarchy) {
+  expectedResults.forEach(er => {
+    let exc = undefined;
+    try {
+      btriev.evaluate(er.query, data, hierarchy)
+    }
+    catch (e) {
+      exc = e;
+      console.log(e);
+    }
+    assert.ok(exc);
+    assert.strictEqual(exc.message, er.message);
+    assert.strictEqual(exc.getLocation()[0], er.start);
+    assert.strictEqual(exc.getLocation()[1], er.end);
+  });
+}
+
+describe('invalid queries', function () {
+  it('mismatched open parens', function() {
+    const queries = [
+      {
+        query: '(tag1 and tag2 or tag3',
+        start: 0,
+        end: 1,
+        message: 'Unmatched open parenthesis',
+      },
+      {
+        query: 'tag1 and (tag2 or tag3',
+        start: 9,
+        end: 10,
+        message: 'Unmatched open parenthesis',
+      },
+      {
+        query: 'tag1 and tag2 or tag3(',
+        start: 21,
+        end: 22,
+        message: 'Unmatched open parenthesis',
+      },
+    ];
+    // TODO
+    //assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('mismatched close parens', function() {
+    const queries = [
+      {
+        query: ')tag1 and tag2 and tag3',
+        start: 0,
+        end: 1,
+        message: 'Unmatched close parenthesis',
+      },
+      {
+        query: 'tag1 and tag2) and tag3',
+        start: 13,
+        end: 14,
+        message: 'Unmatched close parenthesis',
+      },
+      {
+        query: 'tag1 and tag2 or tag3)',
+        start: 21,
+        end: 22,
+        message: 'Unmatched close parenthesis',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('exploding an expression', function() {
+    const queries = [
+      {
+        query: '(tag1 and tag2)*',
+        start: 15,
+        end: 16,
+        message: 'explode operator expects only tag operands',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('pathing an expression', function() {
+    const queries = [
+      {
+        query: '(tag1 and tag2)>tag3',
+        start: 15,
+        end: 16,
+        message: 'path operator expects only tag operands',
+      },
+      {
+        // technically either operator can be culpable - it's an implementation detail, but we attach it to the 2nd
+        query: 'tag1>(tag1 and tag2)>tag3',
+        start: 20,
+        end: 21,
+        message: 'path operator expects only tag operands',
+      },
+      {
+        query: 'tag1>tag3 > (not tag1)',
+        start: 10,
+        end: 11,
+        message: 'path operator expects only tag operands',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('adjoining operators', function() {
+    const queries = [
+      {
+        query: 'and or',
+        start: 0,
+        end: 3,
+        message: 'Binary AND requires left and right expressions to operate on.',
+      },
+      {
+        query: 'not and',
+        start: 0,
+        end: 3,
+        message: 'Left unary operator NOT requires an expression to operate on',
+      },
+      {
+        query: 'tag1 and *',
+        start: 5,
+        end: 8,
+        message: 'Binary AND requires left and right expressions to operate on.',
+      },
+      {
+        query: 'tag1> or *',
+        start: 4,
+        end: 5,
+        message: 'Binary path operator requires left and right expressions to operate on.',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('adjoining tags', function() {
+    const queries = [
+      {
+        query: '"tag1" tag2',
+        start: 6,
+        end: 7,
+        message: 'Expected an operator between expressions',
+      },
+      {
+        query: 'tag1 and "tag2" "tag3"',
+        start: 4,
+        end: 5,
+        message: 'Expected an operator between expressions',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('trailing binary op', function() {
+    const query1 = "tag1 or tag2 and";
+    const query2 = "tag1 and tag2 or";
+
+  });
+
+  it('leading binary op', function() {
+    const query1 = ">tag1";
+    const query2 = "and tag1";
+    const query3 = "or tag1 and tag2";
+
+  });
+
+  it('unary op no operand', function() {
+    const query1 = "*";
+    const query2 = "not";
+  });
+
+  it('binary op no operands', function() {
+    const query1 = '>';
+    const query2 = 'or';
+  });
+
+  it('nonexistant tag', function() {
+
   });
 });
