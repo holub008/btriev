@@ -12,6 +12,10 @@ function evaluate(query, data, tagHierarchy) {
   const lexer = new lex.Lexer();
   const parser = new parse.Parser(tagHierarchy);
   const ast = parser.parse(lexer.tokenize(query));
+  // null ast indicates there's no query == no results
+  if (!ast) {
+    return [];
+  }
   const context = new ec.EvaluationContext(tagHierarchy, data);
   const result = dfsEvaluate(ast, context)
 

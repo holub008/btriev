@@ -114,7 +114,7 @@ const tags = [
     id: 24,
     name: 'tag dupe A'
   },
-]
+];
 
 const hierarchy = btriev.TagHierarchy.createFromEdgeList(edges, tags);
 
@@ -138,6 +138,23 @@ const data1 = btriev.DataStore.fromUnsortedIndex(index1);
 const data2 = btriev.DataStore.fromUnsortedIndex(index1, [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 99]);
 
 describe('query battery with dataset1', function () {
+  const multilineQuery = `
+      (
+        (
+          tag7 
+          or 
+          tag8
+        ) 
+        and 
+        not tag12*
+      )
+      or
+      "tag dupe A"
+      or 
+        tag1 >
+        tag3 >
+        tag5 *`;
+
   const queryToResult = {
     'tag1 AND tag2': [],
     '"tag1" AND "tag2"': [],
@@ -145,10 +162,12 @@ describe('query battery with dataset1', function () {
     'tag1 and (tag2 or tag5)': [101, 103],
     'tag1 and not (tag2 or tag5)': [],
     'tag12*': [103, 106, 109, 110, 111, 112],
+    'tag1 > tag3 > tag5': [101, 103],
     'not dupeB': [102, 103, 104, 107, 108, 109, 112],
     'tag12* and not dupeB': [103, 109, 112],
     'tag12 >dupeB Or tag1>"tag4">"tag dupe A"': [106, 110, 111],
-  }
+    [multilineQuery]: [101, 102, 103, 104, 107, 108],
+  };
 
   it('should correctly execute', function() {
     Object.entries(queryToResult).forEach(([query, expectedResult], ix) => {

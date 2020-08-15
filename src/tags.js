@@ -40,7 +40,7 @@ function bfsCollect(root, adjacency, collector=new Set()) {
 
 class TagHierarchy {
 
-  static createFromEdgeList(edgeList, tags) {
+  static  createFromEdgeList(edgeList, tags) {
     const tagIdToIndex = {};
     const tagNameToIds = {};
     tags.forEach((t, ix) => {
@@ -108,7 +108,7 @@ class TagHierarchy {
   getIdsForPath(idPath) {
     const indexPath = idPath.map(ids => ids.map(id => this.#tagIdToIndex[id]))
     const candidatePaths = recurseListCombinations(indexPath);
-    const matchingIds = [];
+    const matchingIds = new Set();
     candidatePaths.forEach(p => {
       let exists = true;
       for (let ix = 0; ix < (p.length - 1); ix++) {
@@ -120,11 +120,17 @@ class TagHierarchy {
       }
 
       if (exists) {
-        matchingIds.push(this.#indexToTagId[p[p.length - 1]]);
+        matchingIds.add(this.#indexToTagId[p[p.length - 1]]);
       }
     });
 
-    return matchingIds;
+    return [...matchingIds];
+  }
+
+  pathExists(namePath) {
+    const idPath = namePath.map(n => this.getIds(n));
+    const idsForPath = this.getIdsForPath(idPath);
+    return idsForPath.length > 0;
   }
 
   /**

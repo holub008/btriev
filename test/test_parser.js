@@ -1,9 +1,12 @@
 const assert = require('assert');
+const rewire = require('rewire');
 
 const btriev = require('../../btriev');
 const tokens = require('../../btriev/src/tokens');
 const ast = require('../../btriev/src/ast');
 const ops = require('../../btriev/src/operators');
+
+const flattenPathing = rewire('../src/parser').__get__('flattenPathing');
 
 
 describe('parsing an empty sequence', function () {
@@ -155,6 +158,47 @@ describe('parsing an explosion', function () {
   });
 });
 
+describe('path flattening', function() {
+  it('should do nothing to a two tag path', function() {
+    const opTk = new tokens.Token(1, 2, '>', tokens.TokenType.OPERATOR);
+    const t1 = new tokens.Token(0, 1, 'tag1', tokens.TokenType.TAG);
+    const t2 = new tokens.Token(2, 3, 'tag2', tokens.TokenType.TAG);
+
+    const startAST = new ast.Node(opTk, ops.Operators[">"]);
+    startAST.addChild(new ast.Node(t1));
+    startAST.addChild(new ast.Node(t2));
+
+    const targetAST =  new ast.Node(opTk, ops.Operators[">"]);
+    targetAST.addChild(new ast.Node(t1));
+    targetAST.addChild(new ast.Node(t2));
+
+    flattenPathing(startAST, null);
+    assert.ok(ast.nodesEqual(startAST, targetAST));
+  });
+
+  it('should flatten a three tag path', function() {
+    const op1 = new tokens.Token(1, 2, '>', tokens.TokenType.OPERATOR);
+    const op2 = new tokens.Token(3, 4, '>', tokens.TokenType.OPERATOR)
+    const t1 = new tokens.Token(0, 1, 'tag1', tokens.TokenType.TAG);
+    const t2 = new tokens.Token(2, 3, 'tag2', tokens.TokenType.TAG);
+    const t3 = new tokens.Token(5, 6, 'tag3', tokens.TokenType.TAG);
+    const startAST = new ast.Node(op1, ops.Operators[">"]);
+    startAST.addChild(new ast.Node(t1));
+    const path2 = new ast.Node(op2, ops.Operators[">"]);
+    path2.addChild(new ast.Node(t2));
+    path2.addChild(new ast.Node(t3));
+    startAST.addChild(path2);
+
+    const targetAST = new ast.Node(op1, ops.Operators[">"]);
+    targetAST.addChild(new ast.Node(t1));
+    targetAST.addChild(new ast.Node(t2));
+    targetAST.addChild(new ast.Node(t3));
+
+    flattenPathing(startAST, null);
+    assert.ok(ast.nodesEqual(startAST, targetAST));
+  });
+});
+
 describe('parsing a path', function () {
   const tkSequence = [
     new tokens.Token(0, 1, 'not', tokens.TokenType.OPERATOR),
@@ -172,14 +216,12 @@ describe('parsing a path', function () {
   const target = new ast.Node(tkSequence[7], ops.Operators.and);
   const negation = new ast.Node(tkSequence[0], ops.Operators.not);
   const path1 = new ast.Node(tkSequence[2], ops.Operators['>']);
-  const path2 = new ast.Node(tkSequence[4], ops.Operators['>']);
   const explosion = new ast.Node(tkSequence[6], ops.Operators['*']);
 
-  path2.addChild(new ast.Node(tkSequence[3]));
-  path2.addChild(new ast.Node(tkSequence[5]));
-
+  // note these should be flattened, even if initially parsed to binary ops
   path1.addChild(new ast.Node(tkSequence[1]));
-  path1.addChild(path2);
+  path1.addChild(new ast.Node(tkSequence[3]));
+  path1.addChild(new ast.Node(tkSequence[5]));
 
   explosion.addChild(path1);
   negation.addChild(explosion);

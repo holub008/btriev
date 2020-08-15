@@ -40,8 +40,9 @@ function shouldBackProcess(node, operatorStack) {
 }
 
 /**
- * NOTE: this function validates that
+ * NOTE: this function validates that paths exist, after flattening them
  * @param node the Node root to start searching & flattening from
+ * @param tagHierarchy a nullable TagHierarchy object for checking valid paths (not checked if null)
  * @param parent the parent Node of the start Node
  * @return should be ignored - modifies the AST in place
  */
@@ -50,20 +51,23 @@ function flattenPathing(node, tagHierarchy, parent=null) {
 
   // case we have a tag, which will only occur on the leaf nodes
   if (!operator) {
-    if (parent && parent.getOperator() === ops.Operator['>']) {
+    if (parent && parent.getOperator() === ops.Operators['>']) {
       return [node];
     }
-    // else the return value is irrelevant and will be ignored
+    // else, whatever the child tags are, it's irrelevant
+    return [];
   }
   else if (operator === ops.Operators['>']) {
     const childPath = flattenPathing(node.getChildren()[1], tagHierarchy, node);
-    childPath.unshift(node.getChildren()[0])
-
+    childPath.unshift(node.getChildren()[0]);
     // if the parent is no longer a path operator, it's time to stop flattening
     if (!parent || (parent && parent.getOperator() !== ops.Operators['>'])) {
-      const validPath = tagHierarchy.pathExists(childPath.map(n => n.getToken().getValue()));
-      if (!validPath) {
-        throw new err.InvalidPathError(node.getToken());
+      // if supplied, validate the pathing
+      if (tagHierarchy) {
+        const validPath = tagHierarchy.pathExists(childPath.map(n => n.getToken().getValue()));
+        if (!validPath) {
+          throw new err.InvalidPathError(node.getToken());
+        }
       }
       node.setChildren(childPath);
       return [];
@@ -76,13 +80,15 @@ function flattenPathing(node, tagHierarchy, parent=null) {
     // continue our traversal down, ignoring anything that gets returned
     // we can ignore because we know that path operators have already been verified to only be at the final branches (before tags) of the AST
     node.getChildren().forEach(n => flattenPathing(n, tagHierarchy, node));
+    return [];
   }
 }
 
-function restructureAST(ast, tagHierarchy) {
+function validateAndRestructureAST(ast, tagHierarhcy) {
 
-  // check that explode is only applied to tags
-  // check that pathing is only applied to tags
+  // TODO check that explode is only applied to tags
+  // TODO check that pathing is only applied to tags
+  // TODO validate operator arity (before flattening)
 
   // put all tags flat underneath the path operator & check that paths are valid
   flattenPathing(ast);
@@ -165,6 +171,7 @@ class Parser {
       return null;
     }
     else {
+      validateAndRestructureAST(expressions[0])
       return expressions[0];
     }
   }

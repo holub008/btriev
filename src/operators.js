@@ -49,7 +49,7 @@ function notEvaluated() {
 const Operators = {
   '(': new Operator(OperatorPlacement.LEFT, NaN, 6, 'open parenthesis', notEvaluated),
   ')': new Operator(OperatorPlacement.RIGHT, NaN, 6, 'close parenthesis', notEvaluated),
-  '>': new Operator(OperatorPlacement.INFIX, 2, 5, 'path operator', path),
+  '>': new Operator(OperatorPlacement.INFIX, NaN, 5, 'path operator', path),
   '*': new Operator(OperatorPlacement.RIGHT, 1, 4, 'explode operator', explode),
   'not': new Operator(OperatorPlacement.LEFT, 1, 3, 'NOT', negateHandler),
   'and': new Operator(OperatorPlacement.INFIX, 2, 2, 'AND', intersectHandler),
