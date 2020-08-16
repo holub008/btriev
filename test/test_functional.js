@@ -220,24 +220,23 @@ describe('invalid queries', function () {
       {
         query: '(tag1 and tag2 or tag3',
         start: 0,
-        end: 1,
+        end: 0,
         message: 'Unmatched open parenthesis',
       },
       {
         query: 'tag1 and (tag2 or tag3',
         start: 9,
-        end: 10,
+        end: 9,
         message: 'Unmatched open parenthesis',
       },
       {
         query: 'tag1 and tag2 or tag3(',
         start: 21,
-        end: 22,
+        end: 21,
         message: 'Unmatched open parenthesis',
       },
     ];
-    // TODO
-    //assertExceptions(queries, data1, hierarchy);
+    assertExceptions(queries, data1, hierarchy);
   });
 
   it('mismatched close parens', function() {

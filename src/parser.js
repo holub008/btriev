@@ -191,10 +191,15 @@ class Parser {
     // backprocess all remaining ops
     while (operatorStack.length > 0) {
       const currentNode = operatorStack.pop();
+      if (currentNode.getOperator() === ops.Operators['(']) {
+        throw new err.ParseError(`Unmatched ${ops.Operators['('].getDisplayName()}`,
+          currentNode.getToken().getStartIndex(), currentNode.getToken().getEndIndex());
+      }
       currentNode.attachToAST(expressions);
     }
 
-    //this condition indicates that two operands were abutted, with no operator between them
+    // this condition indicates that two operands were abutted, with no operator between them
+    // I don't expect this to ever happen give the earlier checks for non-adjoined tags
     if (expressions.length > 1) {
       const lhsEnd = getIndexEdges(expressions[0])[1] + 1;
       const rhsStart = getIndexEdges(expressions[1])[0];
