@@ -133,13 +133,19 @@ class Parser {
     let expressions = [];
     const operatorStack = [];
 
+    let lastWasTag = false;
     tokens.forEach(t => {
       if (t.getType() === tk.TokenType.TAG) {
+        if (lastWasTag) {
+          throw new err.ParseError('Expected an operator before tag',
+            t.getStartIndex(), t.getEndIndex());
+        }
         // TODO this is a linear scan, which could be made to a binary search
         if (this._tagHierarchy && !this._tagHierarchy.containsTag(t.getValue())) {
           throw new err.InvalidTagError(t);
         }
         expressions.push(new ast.Node(t));
+        lastWasTag = true;
       }
       else if (t.getType() === tk.TokenType.OPERATOR) {
         const operatorLiteral = ops.Operators[t.getValue()];
@@ -174,6 +180,7 @@ class Parser {
           }
           operatorStack.push(node);
         }
+        lastWasTag = false;
       }
       else {
         // this is a developer error (adding a new, unhandled token type), not a user one
@@ -189,10 +196,8 @@ class Parser {
 
     //this condition indicates that two operands were abutted, with no operator between them
     if (expressions.length > 1) {
-      const lhsEnd = getIndexEdges(expressions[0])[1];
+      const lhsEnd = getIndexEdges(expressions[0])[1] + 1;
       const rhsStart = getIndexEdges(expressions[1])[0];
-      console.log(expressions[0].getToken());
-      console.log(expressions[1].getToken());
       throw new err.ParseError('Expected an operator between expressions',
         lhsEnd, rhsStart);
     }

@@ -245,19 +245,19 @@ describe('invalid queries', function () {
       {
         query: ')tag1 and tag2 and tag3',
         start: 0,
-        end: 1,
+        end: 0,
         message: 'Unmatched close parenthesis',
       },
       {
         query: 'tag1 and tag2) and tag3',
         start: 13,
-        end: 14,
+        end: 13,
         message: 'Unmatched close parenthesis',
       },
       {
         query: 'tag1 and tag2 or tag3)',
         start: 21,
-        end: 22,
+        end: 21,
         message: 'Unmatched close parenthesis',
       },
     ];
@@ -269,7 +269,7 @@ describe('invalid queries', function () {
       {
         query: '(tag1 and tag2)*',
         start: 15,
-        end: 16,
+        end: 15,
         message: 'explode operator expects only tag operands',
       },
     ];
@@ -281,20 +281,20 @@ describe('invalid queries', function () {
       {
         query: '(tag1 and tag2)>tag3',
         start: 15,
-        end: 16,
+        end: 15,
         message: 'path operator expects only tag operands',
       },
       {
         // technically either operator can be culpable - it's an implementation detail, but we attach it to the 2nd
         query: 'tag1>(tag1 and tag2)>tag3',
         start: 20,
-        end: 21,
+        end: 20,
         message: 'path operator expects only tag operands',
       },
       {
         query: 'tag1>tag3 > (not tag1)',
         start: 10,
-        end: 11,
+        end: 10,
         message: 'path operator expects only tag operands',
       },
     ];
@@ -306,25 +306,25 @@ describe('invalid queries', function () {
       {
         query: 'and or',
         start: 0,
-        end: 3,
+        end: 2,
         message: 'Binary AND requires left and right expressions to operate on.',
       },
       {
         query: 'not and',
         start: 0,
-        end: 3,
+        end: 2,
         message: 'Left unary operator NOT requires an expression to operate on',
       },
       {
         query: 'tag1 and *',
         start: 5,
-        end: 8,
+        end: 7,
         message: 'Binary AND requires left and right expressions to operate on.',
       },
       {
         query: 'tag1> or *',
         start: 4,
-        end: 5,
+        end: 4,
         message: 'Binary path operator requires left and right expressions to operate on.',
       },
     ];
@@ -335,15 +335,15 @@ describe('invalid queries', function () {
     const queries = [
       {
         query: '"tag1" tag2',
-        start: 6,
-        end: 7,
-        message: 'Expected an operator between expressions',
+        start: 7,
+        end: 10,
+        message: 'Expected an operator before tag',
       },
       {
         query: 'tag1 and "tag2" "tag3"',
-        start: 15,
-        end: 16,
-        message: 'Expected an operator between expressions',
+        start: 16,
+        end: 21,
+        message: 'Expected an operator before tag',
       },
     ];
     assertExceptions(queries, data1, hierarchy);
