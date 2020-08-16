@@ -17,12 +17,14 @@ function tokenizeOperatorMatch(match, consumedIx, unconsumedQuery) {
   const tokens = [];
 
   // anything to the left of the operator is an unquoted tag
-  const lhs = unconsumedQuery.slice(consumedIx, operatorIndex + consumedIx).trim();
-  if (lhs) {
+  const lhsWhitespace = unconsumedQuery.slice(consumedIx, operatorIndex + consumedIx);
+  const lhsLeftClean = lhsWhitespace.trimLeft();
+  const lhsClean = lhsLeftClean.trimRight();
+  if (lhsClean) {
     tokens.push(new Token(
-      consumedIx,
-      consumedIx + operatorIndex,
-      lhs,
+      consumedIx + (lhsWhitespace.length - lhsLeftClean.length),
+      consumedIx + (lhsWhitespace.length - lhsLeftClean.length) + lhsClean.length - 1,
+      lhsClean,
       TokenType.TAG)
     );
   }
@@ -32,7 +34,7 @@ function tokenizeOperatorMatch(match, consumedIx, unconsumedQuery) {
 
   tokens.push(new Token(
     consumedIx + operatorIndex,
-    newConsumedIx,
+    newConsumedIx - 1,
     operator,
     TokenType.OPERATOR));
 
@@ -65,18 +67,17 @@ class Lexer {
 
       const quotedTagMatch = QUOTED_TAG_TOKEN.exec(unconsumedQuery);
       if (quotedTagMatch) {
-        const consumedEndIndex = consumedIx + quotedTagMatch[0].length;
-        const tokenValueQuoted = quotedTagMatch[1]
-          .trim() // whitespace
-          .replace(/\\"/g, '"'); // escaped quotes are unescaped
-        const tokenValue = tokenValueQuoted.slice(1, tokenValueQuoted.length - 1);
-        const token = new Token(consumedIx,
-          consumedEndIndex - 1,
+        const tokenQuotedLeftClean = quotedTagMatch[0].trimLeft();
+        const tokenQuotedClean = tokenQuotedLeftClean.trimRight();
+        const unescapedTokenContent = tokenQuotedClean.replace(/\\"/g, '"');
+        const tokenValue = unescapedTokenContent.slice(1, unescapedTokenContent.length - 1);
+        const token = new Token(consumedIx + (quotedTagMatch[0].length - tokenQuotedLeftClean.length),
+          consumedIx + (quotedTagMatch[0].length - tokenQuotedLeftClean.length) + tokenQuotedClean.length - 1,
           tokenValue,
           TokenType.TAG);
 
         tokens.push(token);
-        consumedIx = consumedEndIndex;
+        consumedIx = consumedIx + quotedTagMatch[0].length;
 
         continue;
       }
@@ -102,7 +103,7 @@ class Lexer {
         const tag = unconsumedQuery.trim();
         if (tag)  {
           tokens.push(new Token(
-            consumedIx,
+            consumedIx + (unconsumedQuery.length - tag.length),
             query.length - 1,
             tag,
             TokenType.TAG

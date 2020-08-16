@@ -223,7 +223,7 @@ describe('lexing an unquoted tag', function() {
     });
 });
 
-describe('lexing an quoted tag', function() {
+describe('lexing a quoted tag', function() {
   const queryLower = '"blah blah"';
   const queryMixed = '"Blah and \\"blah\\""';
 
@@ -247,9 +247,9 @@ describe('lexing a two part conjunction', function() {
 
   it('should handle unquoted tags', function() {
     const target = [
-      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
-      new tokens.Token(11, 14, 'and', tokens.TokenType.OPERATOR),
-      new tokens.Token(14, 24, 'tag name 2', tokens.TokenType.TAG),
+      new tokens.Token(0, 9, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 13, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(15, 24, 'tag name 2', tokens.TokenType.TAG),
     ];
 
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
@@ -257,9 +257,9 @@ describe('lexing a two part conjunction', function() {
 
   it('should handle quoted tags', function() {
     const target = [
-      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
-      new tokens.Token(11, 14, 'and', tokens.TokenType.OPERATOR),
-      new tokens.Token(14, 26, 'tag name 2', tokens.TokenType.TAG),
+      new tokens.Token(0, 9, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 13, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(15, 26, 'tag name 2', tokens.TokenType.TAG),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
   });
@@ -267,14 +267,15 @@ describe('lexing a two part conjunction', function() {
 
 describe('lexing a two part union', function() {
   const queryUnquoted = "tag name 1 or tag name 2";
+  // this is intentionally invalid syntax
   const queryQuoted = '"tag name" 1 OR "tag name 2"';
   const lexer = new btriev.Lexer();
 
   it('should handle unquoted tags', function() {
     const target = [
-      new tokens.Token(0, 11, 'tag name 1', tokens.TokenType.TAG),
-      new tokens.Token(11, 13, 'or', tokens.TokenType.OPERATOR),
-      new tokens.Token(13, 23, 'tag name 2', tokens.TokenType.TAG),
+      new tokens.Token(0, 9, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(11, 12, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(14, 23, 'tag name 2', tokens.TokenType.TAG),
     ];
 
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
@@ -283,9 +284,9 @@ describe('lexing a two part union', function() {
   it('should handle quoted tags', function() {
     const target = [
       new tokens.Token(0, 9, 'tag name', tokens.TokenType.TAG),
-      new tokens.Token(10, 13, '1', tokens.TokenType.TAG),
-      new tokens.Token(13, 15, 'or', tokens.TokenType.OPERATOR),
-      new tokens.Token(15, 27, 'tag name 2', tokens.TokenType.TAG),
+      new tokens.Token(11, 11, '1', tokens.TokenType.TAG),
+      new tokens.Token(13, 14, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(16, 27, 'tag name 2', tokens.TokenType.TAG),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
   });
@@ -298,8 +299,8 @@ describe('lexing a negation', function() {
 
   it('should handle a single unquoted tag', function() {
     const target = [
-      new tokens.Token(0, 3, 'not', tokens.TokenType.OPERATOR),
-      new tokens.Token(3, 13, 'tag name 1', tokens.TokenType.TAG),
+      new tokens.Token(0, 2, 'not', tokens.TokenType.OPERATOR),
+      new tokens.Token(4, 13, 'tag name 1', tokens.TokenType.TAG),
     ];
 
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
@@ -307,28 +308,29 @@ describe('lexing a negation', function() {
 
   it('should handle in context', function() {
     const target = [
-      new tokens.Token(0, 6, 'a tag', tokens.TokenType.TAG),
-      new tokens.Token(6, 9, 'not', tokens.TokenType.OPERATOR),
-      new tokens.Token(9, 19, 'tag name', tokens.TokenType.TAG),
+      new tokens.Token(0, 4, 'a tag', tokens.TokenType.TAG),
+      new tokens.Token(6, 8, 'not', tokens.TokenType.OPERATOR),
+      new tokens.Token(10, 19, 'tag name', tokens.TokenType.TAG),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
   });
 });
 
 describe('path operator', function() {
+  // intentionally invalid syntax
   const queryUnquoted = "x>y >tag name >>";
   const queryQuoted = '>"x">\n"tag name"';
   const lexer = new btriev.Lexer();
 
   it('should handle unquoted tags', function() {
     const target = [
-      new tokens.Token(0, 1, 'x', tokens.TokenType.TAG),
-      new tokens.Token(1, 2, '>', tokens.TokenType.OPERATOR),
-      new tokens.Token(2, 4, 'y', tokens.TokenType.TAG),
-      new tokens.Token(4, 5, '>', tokens.TokenType.OPERATOR),
-      new tokens.Token(5, 14, 'tag name', tokens.TokenType.TAG),
-      new tokens.Token(14, 15, '>', tokens.TokenType.OPERATOR),
-      new tokens.Token(15, 16, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(0, 0, 'x', tokens.TokenType.TAG),
+      new tokens.Token(1, 1, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(2, 2, 'y', tokens.TokenType.TAG),
+      new tokens.Token(4, 4, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(5, 12, 'tag name', tokens.TokenType.TAG),
+      new tokens.Token(14, 14, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(15, 15, '>', tokens.TokenType.OPERATOR),
     ];
 
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryUnquoted), target));
@@ -336,10 +338,10 @@ describe('path operator', function() {
 
   it('should handle quoted tags', function() {
     const target = [
-      new tokens.Token(0, 1, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(0, 0, '>', tokens.TokenType.OPERATOR),
       new tokens.Token(1, 3, 'x', tokens.TokenType.TAG),
-      new tokens.Token(4, 5,'>', tokens.TokenType.OPERATOR),
-      new tokens.Token(5, 15, 'tag name', tokens.TokenType.TAG),
+      new tokens.Token(4, 4,'>', tokens.TokenType.OPERATOR),
+      new tokens.Token(6, 15, 'tag name', tokens.TokenType.TAG),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryQuoted), target));
   });
@@ -352,8 +354,8 @@ describe('lexing explode operator', function() {
   it('should work in context', function() {
     const target = [
       new tokens.Token(0, 2, 'x', tokens.TokenType.TAG),
-      new tokens.Token(4, 5, '*', tokens.TokenType.OPERATOR),
-      new tokens.Token(5, 6,'y', tokens.TokenType.TAG),
+      new tokens.Token(4, 4, '*', tokens.TokenType.OPERATOR),
+      new tokens.Token(6, 6,'y', tokens.TokenType.TAG),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(query), target));
   });
@@ -366,15 +368,15 @@ describe('lexing parens', function() {
 
   it('should work in context', function() {
     const target = [
-      new tokens.Token(0, 1, '(', tokens.TokenType.OPERATOR),
+      new tokens.Token(0, 0, '(', tokens.TokenType.OPERATOR),
       new tokens.Token(1, 3, 'x', tokens.TokenType.TAG),
-      new tokens.Token(5, 8, 'and', tokens.TokenType.OPERATOR),
-      new tokens.Token(8, 11,'y', tokens.TokenType.TAG),
-      new tokens.Token(14, 15, ')', tokens.TokenType.OPERATOR),
-      new tokens.Token(16, 18, 'or', tokens.TokenType.OPERATOR),
-      new tokens.Token(18, 19, '(', tokens.TokenType.OPERATOR),
-      new tokens.Token(19, 27, 'tag1', tokens.TokenType.TAG),
-      new tokens.Token(31, 32, ')', tokens.TokenType.OPERATOR),
+      new tokens.Token(5, 7, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(9, 11,'y', tokens.TokenType.TAG),
+      new tokens.Token(14, 14, ')', tokens.TokenType.OPERATOR),
+      new tokens.Token(16, 17, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(18, 18, '(', tokens.TokenType.OPERATOR),
+      new tokens.Token(22, 27, 'tag1', tokens.TokenType.TAG),
+      new tokens.Token(31, 31, ')', tokens.TokenType.OPERATOR),
 
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(query), target));
@@ -387,27 +389,27 @@ describe('lexing a full query', function() {
 
   it('should work...', function() {
     const target = [
-      new tokens.Token(0, 3, 'not', tokens.TokenType.OPERATOR),
-      new tokens.Token(3, 4, '(', tokens.TokenType.OPERATOR),
+      new tokens.Token(0, 2, 'not', tokens.TokenType.OPERATOR),
+      new tokens.Token(3, 3, '(', tokens.TokenType.OPERATOR),
       new tokens.Token(4, 6, 'x', tokens.TokenType.TAG),
-      new tokens.Token(8, 11, 'and', tokens.TokenType.OPERATOR),
-      new tokens.Token(12, 13,'(', tokens.TokenType.OPERATOR),
+      new tokens.Token(8, 10, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(12, 12,'(', tokens.TokenType.OPERATOR),
       new tokens.Token(13, 28, 'y and/or "z"', tokens.TokenType.TAG),
-      new tokens.Token(30, 32, 'or', tokens.TokenType.OPERATOR),
-      new tokens.Token(32, 34, 'z', tokens.TokenType.TAG),
-      new tokens.Token(34, 35, ')', tokens.TokenType.OPERATOR),
-      new tokens.Token(35, 36, ')', tokens.TokenType.OPERATOR),
-      new tokens.Token(37, 39, 'or', tokens.TokenType.OPERATOR),
-      new tokens.Token(42, 43, '(', tokens.TokenType.OPERATOR),
+      new tokens.Token(30, 31, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(33, 33, 'z', tokens.TokenType.TAG),
+      new tokens.Token(34, 34, ')', tokens.TokenType.OPERATOR),
+      new tokens.Token(35, 35, ')', tokens.TokenType.OPERATOR),
+      new tokens.Token(37, 38, 'or', tokens.TokenType.OPERATOR),
+      new tokens.Token(42, 42, '(', tokens.TokenType.OPERATOR),
       new tokens.Token(43, 53, 'grand tag', tokens.TokenType.TAG),
-      new tokens.Token(54, 55, '>', tokens.TokenType.OPERATOR),
-      new tokens.Token(55, 66, 'parent tag', tokens.TokenType.TAG),
-      new tokens.Token(66, 67, '>', tokens.TokenType.OPERATOR),
-      new tokens.Token(67, 81, 'child tag', tokens.TokenType.TAG),
-      new tokens.Token(81, 84, 'and', tokens.TokenType.OPERATOR),
-      new tokens.Token(84, 95, 'explodable', tokens.TokenType.TAG),
-      new tokens.Token(95, 96, '*', tokens.TokenType.OPERATOR),
-      new tokens.Token(96, 97, ')', tokens.TokenType.OPERATOR),
+      new tokens.Token(54, 54, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(55, 64, 'parent tag', tokens.TokenType.TAG),
+      new tokens.Token(66, 66, '>', tokens.TokenType.OPERATOR),
+      new tokens.Token(69, 77, 'child tag', tokens.TokenType.TAG),
+      new tokens.Token(81, 83, 'and', tokens.TokenType.OPERATOR),
+      new tokens.Token(85, 94, 'explodable', tokens.TokenType.TAG),
+      new tokens.Token(95, 95, '*', tokens.TokenType.OPERATOR),
+      new tokens.Token(96, 96, ')', tokens.TokenType.OPERATOR),
     ];
     assert.ok(tokens.tokensEqual(lexer.tokenize(query1), target));
   });

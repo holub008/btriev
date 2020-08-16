@@ -341,8 +341,8 @@ describe('invalid queries', function () {
       },
       {
         query: 'tag1 and "tag2" "tag3"',
-        start: 4,
-        end: 5,
+        start: 15,
+        end: 16,
         message: 'Expected an operator between expressions',
       },
     ];

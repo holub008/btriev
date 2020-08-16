@@ -189,8 +189,10 @@ class Parser {
 
     //this condition indicates that two operands were abutted, with no operator between them
     if (expressions.length > 1) {
-      const lhsEnd = getIndexEdges(expressions[0])[1] + 1;
-      const rhsStart = getIndexEdges(expressions[1])[0] + 1;
+      const lhsEnd = getIndexEdges(expressions[0])[1];
+      const rhsStart = getIndexEdges(expressions[1])[0];
+      console.log(expressions[0].getToken());
+      console.log(expressions[1].getToken());
       throw new err.ParseError('Expected an operator between expressions',
         lhsEnd, rhsStart);
     }
