@@ -380,11 +380,6 @@ describe('invalid queries', function () {
   it('leading binary op', function() {
     const queries = [
       {
-        // TODO this is obviously unideal behavior. however, due to operator precedence and our
-        // parser implementation, it's nontrivial to assign blame to the rightmost operator
-        // we put a test on it, and leave it for now :/
-        // the solution will be to check that sum(operator.arity) in the operator stack === # of expressions.
-        // if that check fails, we accept on the last op
         query: '>tag1',
         start: 0,
         end: 0,
@@ -463,7 +458,15 @@ describe('invalid queries', function () {
     assertExceptions(queries, data1, hierarchy);
   });
 
-  it('nonexistant tag', function() {
-
+  it('nonexistent tag', function() {
+    const queries = [
+      {
+        query: '"not a tag"',
+        start: 0,
+        end: 10,
+        message: "Tag name 'not a tag' does not exist",
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
   });
 });

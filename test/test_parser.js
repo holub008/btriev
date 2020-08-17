@@ -233,3 +233,37 @@ describe('parsing a path', function () {
     assert.ok(ast.nodesEqual(parser.parse(tkSequence), target, true));
   });
 });
+
+describe('nonexistent  tags', function () {
+  const tkSequence = [
+    new tokens.Token(0, 1, 'not a tag', tokens.TokenType.TAG),
+    new tokens.Token(12, 13, 'and', tokens.TokenType.OPERATOR),
+    new tokens.Token(0, 1, 'tag', tokens.TokenType.TAG),
+  ];
+
+  it('should throw when a hierarchy is supplied', function() {
+    const hierarchy = btriev.TagHierarchy.createFromEdgeList([], tags=[{id: 1, name: 'tag'}]);
+    const parser = new btriev.Parser(hierarchy);
+
+    let exc;
+    try {
+      parser.parse(tkSequence)
+    }
+    catch(e) {
+      exc = e;
+    }
+
+    assert.ok(exc);
+    assert.strictEqual(exc.message, "Tag name 'not a tag' does not exist");
+  });
+
+  it('should succeed when a hierarchy is not supplied', function() {
+    const parser = new btriev.Parser();
+    const result = parser.parse(tkSequence);
+    const target = new ast.Node(tkSequence[1], ops.Operators.and);
+    target.addChild(new ast.Node(tkSequence[0]));
+    target.addChild(new ast.Node(tkSequence[2]));
+
+    assert.ok(ast.nodesEqual(result, target));
+  });
+});

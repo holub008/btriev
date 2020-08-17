@@ -140,7 +140,7 @@ class Parser {
           throw new err.ParseError('Expected an operator before tag',
             t.getStartIndex(), t.getEndIndex());
         }
-        // TODO this is a linear scan, which could be made to a binary search
+
         if (this._tagHierarchy && !this._tagHierarchy.containsTag(t.getValue())) {
           throw new err.InvalidTagError(t);
         }

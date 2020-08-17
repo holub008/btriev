@@ -14,7 +14,6 @@ function recurseListCombinations(data) {
   const combinations = [];
   focusList.forEach(element => {
     subCombinations.forEach(sc => {
-      // TODO not performant
       const copy = sc.slice();
       copy.unshift(element);
       combinations.push(copy);
