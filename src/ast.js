@@ -40,7 +40,7 @@ class Node {
       const rhs = expressions.pop();
 
       if (!rhs) {
-        throw new err.ParseError(`Left unary operator ${this._operator.getDisplayName()} requires an expression to operate on`,
+        throw new err.ParseError(`Left unary ${this._operator.getDisplayName()} requires an expression to operate on`,
           this._token.getStartIndex(), this._token.getEndIndex());
       }
 
@@ -51,7 +51,7 @@ class Node {
       const lhs = expressions.pop();
 
       if (!lhs) {
-        throw new err.ParseError(`Right unary operator ${this._operator.getDisplayName()} requires an expression to operate on`,
+        throw new err.ParseError(`Right unary ${this._operator.getDisplayName()} requires an expression to operate on`,
           this._token.getStartIndex(), this._token.getEndIndex());
       }
 
