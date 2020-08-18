@@ -133,10 +133,12 @@ class Parser {
     let expressions = [];
     const operatorStack = [];
 
-    let lastWasTag = false;
+    let lastWasExpression = false;
+    let currentControlDepth = 0;
+
     tokens.forEach(t => {
       if (t.getType() === tk.TokenType.TAG) {
-        if (lastWasTag) {
+        if (lastWasExpression) {
           throw new err.ParseError('Expected an operator before tag',
             t.getStartIndex(), t.getEndIndex());
         }
@@ -144,8 +146,11 @@ class Parser {
         if (this._tagHierarchy && !this._tagHierarchy.containsTag(t.getValue())) {
           throw new err.InvalidTagError(t);
         }
-        expressions.push(new ast.Node(t));
-        lastWasTag = true;
+
+        const node = new ast.Node(t);
+        node.setControlDepth(currentControlDepth);
+        expressions.push(node);
+        lastWasExpression = true;
       }
       else if (t.getType() === tk.TokenType.OPERATOR) {
         const operatorLiteral = ops.Operators[t.getValue()];
@@ -154,10 +159,13 @@ class Parser {
           throw new Error(`Unknown operator: ${t.getValue()}`);
         }
         const node = new ast.Node(t, operatorLiteral);
+        node.setControlDepth(currentControlDepth);
 
         if (operatorLiteral === ops.Operators["("]) {
-          // this is a hardcode - assuming parens are highest prio
           operatorStack.push(node);
+
+          currentControlDepth++;
+          lastWasExpression = false;
         }
         else if (operatorLiteral === ops.Operators[')']) {
           // parse everything until the open parens
@@ -172,6 +180,14 @@ class Parser {
             throw new err.ParseError(`Unmatched ${ops.Operators[')'].getDisplayName()}`,
               t.getStartIndex(), t.getEndIndex());
           }
+
+          // since we've backed out of parens, reduce control depth
+          currentControlDepth--;
+          const mostRecentExpr = expressions[expressions.length - 1];
+          mostRecentExpr.setControlDepth(currentControlDepth);
+
+          // since trailing parens indicates an expression
+          lastWasExpression = true;
         }
         else {
           while (shouldBackProcess(node, operatorStack)) {
@@ -179,8 +195,9 @@ class Parser {
             priorNode.attachToAST(expressions);
           }
           operatorStack.push(node);
+
+          lastWasExpression = false;
         }
-        lastWasTag = false;
       }
       else {
         // this is a developer error (adding a new, unhandled token type), not a user one

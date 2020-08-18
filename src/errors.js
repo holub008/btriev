@@ -25,7 +25,6 @@ class InvalidPathError extends ParseError {
   constructor(token) {
     super(`Path does not exist`, token.getStartIndex(), token.getEndIndex());
   }
-
 }
 
 module.exports = {

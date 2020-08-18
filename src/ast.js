@@ -3,18 +3,22 @@ const ops = require('./operators');
 
 class Node {
 
+  #children = []
+  #token;
+  #operator;
+  #controlDepth;
+
   constructor(token, operator=null) {
-    this._children = [];
-    this._token = token;
-    this._operator = operator;
+    this.#token = token;
+    this.#operator = operator;
   }
 
   getToken() {
-    return this._token;
+    return this.#token;
   }
 
   getOperator() {
-    return this._operator;
+    return this.#operator;
   }
 
   attachToAST(expressions) {
@@ -22,44 +26,48 @@ class Node {
      * note, this method makes assumptions about how the token & expression stack is populated. it should be assumed "package private"\
      * `this` object is mutated, and expressions is mutated (this is done in place for performance reasons :|)
      */
-    if (this._operator.getPlacement() === ops.OperatorPlacement.INFIX) {
+    if (!this.#operator) {
+      throw new Error('Attaching a non-operator to the AST is not allowed!');
+    }
+
+    if (this.#operator.getPlacement() === ops.OperatorPlacement.INFIX) {
       // always pop from the back
       const rhs = expressions.pop();
       const lhs = expressions.pop();
 
-      if (!rhs || !lhs) {
-        throw new err.ParseError(`Binary ${this._operator.getDisplayName()} requires left and right expressions to operate on.`,
-          this._token.getStartIndex(), this._token.getEndIndex());
+      if (!rhs || !lhs || lhs.getControlDepth() !== rhs.getControlDepth() || lhs.getControlDepth() !== this.getControlDepth()) {
+        throw new err.ParseError(`Binary ${this.#operator.getDisplayName()} requires left and right expressions to operate on.`,
+          this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
       this.addChild(lhs);
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this._operator.getPlacement() === ops.OperatorPlacement.LEFT) {
+    else if (this.#operator.getPlacement() === ops.OperatorPlacement.LEFT) {
       const rhs = expressions.pop();
 
-      if (!rhs) {
-        throw new err.ParseError(`Left unary ${this._operator.getDisplayName()} requires an expression to operate on`,
-          this._token.getStartIndex(), this._token.getEndIndex());
+      if (!rhs || rhs.getControlDepth() !== this.getControlDepth()) {
+        throw new err.ParseError(`Left unary ${this.#operator.getDisplayName()} requires an expression to operate on`,
+          this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this._operator.getPlacement() === ops.OperatorPlacement.RIGHT) {
+    else if (this.#operator.getPlacement() === ops.OperatorPlacement.RIGHT) {
       const lhs = expressions.pop();
 
-      if (!lhs) {
-        throw new err.ParseError(`Right unary ${this._operator.getDisplayName()} requires an expression to operate on`,
-          this._token.getStartIndex(), this._token.getEndIndex());
+      if (!lhs || lhs.getControlDepth() !== this.getControlDepth()) {
+        throw new err.ParseError(`Right unary ${this.#operator.getDisplayName()} requires an expression to operate on`,
+          this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
       this.addChild(lhs);
       expressions.push(this);
     }
     else {
-      throw new Error(`Unexpected operator placement attribute: ${this._operator.getPlacement()}`);
+      throw new Error(`Unexpected operator placement attribute: ${this.#operator.getPlacement()}`);
     }
   }
 
@@ -67,21 +75,35 @@ class Node {
    * add a child node, incrementally
    */
   addChild(node) {
-    this._children.push(node);
+    this.#children.push(node);
   }
 
   /**
    * get the nodes children, in their current state
    */
   getChildren() {
-    return this._children;
+    return this.#children;
   }
 
   /**
    * set the node's children, completely overwriting prior children
    */
   setChildren(children) {
-    this._children = children;
+    this.#children = children;
+  }
+
+  /**
+   * do not use - this is considered an implementation detail of the Node class
+   */
+  setControlDepth(depth) {
+    this.#controlDepth = depth;
+  }
+
+  /**
+   * do not use - this is considered an implementation detail of the Node class
+   */
+  getControlDepth() {
+    return this.#controlDepth;
   }
 
   equals(other) {

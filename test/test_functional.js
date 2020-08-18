@@ -205,7 +205,6 @@ function assertExceptions(expectedResults, data, hierarchy) {
     }
     catch (e) {
       exc = e;
-      console.log(e);
     }
     assert.ok(exc);
     assert.strictEqual(exc.message, er.message);
@@ -344,6 +343,18 @@ describe('invalid queries', function () {
         end: 21,
         message: 'Expected an operator before tag',
       },
+      {
+        query: 'tag1 ("tag2" or "tag3")',
+        start: 4,
+        end: 6,
+        message: 'Expected an operator between expressions',
+      },
+      {
+        query: 'tag1 and ("tag2" or "tag3") tag4',
+        start: 28,
+        end: 31,
+        message: 'Expected an operator before tag',
+      },
     ];
     assertExceptions(queries, data1, hierarchy);
   });
@@ -363,8 +374,8 @@ describe('invalid queries', function () {
       },
       {
         query: 'tag3 or (tag1 or tag2 and) and tag4',
-        start: 5,
-        end: 6,
+        start: 14,
+        end: 15,
         message: 'Binary OR requires left and right expressions to operate on.',
       },
       {
@@ -397,15 +408,12 @@ describe('invalid queries', function () {
         end: 1,
         message: 'Binary OR requires left and right expressions to operate on.',
       },
-      // TODO this should fail
-      /**
       {
         query: 'tag4 (or tag1 and tag2)',
         start: 6,
         end: 7,
         message: 'Binary OR requires left and right expressions to operate on.',
       },
-       */
     ];
     assertExceptions(queries, data1, hierarchy);
   });
