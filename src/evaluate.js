@@ -7,10 +7,11 @@ const ec = require('./evaluation_context');
  * @param query a string btriev query
  * @param data an array of array of tag ids (Number)
  * @param tagHierarchy
+ * @param allowUnknownTags indicate whether unknown tags should result in an error, or match no data
  */
-function evaluate(query, data, tagHierarchy) {
+function evaluate(query, data, tagHierarchy, allowUnknownTags=false) {
   const lexer = new lex.Lexer();
-  const parser = new parse.Parser(tagHierarchy);
+  const parser = allowUnknownTags ? new parse.Parser() : new parse.Parser(tagHierarchy);
   const ast = parser.parse(lexer.tokenize(query));
   // null ast indicates there's no query == no results
   if (!ast) {

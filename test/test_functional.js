@@ -197,6 +197,23 @@ describe('query battery with dataset2', function () {
   });
 });
 
+describe('query battery with missing tags', function () {
+  const queryToResult = {
+    'tag1 AND tag2 and tag1337': [],
+    'tag12* AND NOT "unknown tag"': [103, 106, 109, 110, 111, 112],
+    'tag1 > "unknown tag" > tag5': [],
+    'not dupeB or unknown': [99, 102, 103, 104, 107, 108, 109, 112, 113],
+  };
+
+  it('should correctly execute when configured to allow unknown tags', function() {
+    Object.entries(queryToResult).forEach(([query, expectedResult], ix) => {
+      console.log(ix);
+      const dataIds = btriev.evaluate(query, data2, hierarchy, true);
+      assert.deepStrictEqual(dataIds, expectedResult);
+    })
+  });
+});
+
 function assertExceptions(expectedResults, data, hierarchy) {
   expectedResults.forEach(er => {
     let exc = undefined;
