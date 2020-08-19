@@ -40,6 +40,12 @@ class Node {
           this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
+      // TODO this is slow, but does give the user informative errors
+      if (getIndexEdges(rhs)[0] < this.#token.getStartIndex()) {
+        throw new err.ParseError(`Binary ${this.#operator.getDisplayName()} requires left and right expressions to operate on.`,
+          this.#token.getStartIndex(), this.#token.getEndIndex());
+      }
+
       this.addChild(lhs);
       this.addChild(rhs);
       expressions.push(this);
@@ -49,6 +55,11 @@ class Node {
 
       if (!rhs || rhs.getControlDepth() !== this.getControlDepth()) {
         throw new err.ParseError(`Left unary ${this.#operator.getDisplayName()} requires an expression to operate on`,
+          this.#token.getStartIndex(), this.#token.getEndIndex());
+      }
+
+      if (getIndexEdges(rhs)[0] < this.#token.getStartIndex()) {
+        throw new err.ParseError(`Left unary ${this.#operator.getDisplayName()} requires an expression to operate on.`,
           this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
@@ -166,8 +177,30 @@ function nodesEqual(left, right, verbose, depth=0) {
   }
 }
 
+function getIndexEdges(root) {
+  const children = root.getChildren();
+
+  if (!children || children.length === 0) {
+    return [root.getToken().getStartIndex(), root.getToken().getEndIndex()];
+  }
+
+  let rootedMin = Infinity;
+  let rootedMax = -1;
+  children.forEach(c => {
+    const [cMin, cMax] = getIndexEdges(c);
+    if (cMin < rootedMin) {
+      rootedMin = cMin;
+    }
+    if (cMax > rootedMax) {
+      rootedMax = cMax;
+    }
+  });
+
+  return [rootedMin, rootedMax];
+}
 
 module.exports = {
   Node,
   nodesEqual,
+  getIndexEdges,
 };

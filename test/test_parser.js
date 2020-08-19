@@ -238,7 +238,7 @@ describe('nonexistent  tags', function () {
   const tkSequence = [
     new tokens.Token(0, 1, 'not a tag', tokens.TokenType.TAG),
     new tokens.Token(12, 13, 'and', tokens.TokenType.OPERATOR),
-    new tokens.Token(0, 1, 'tag', tokens.TokenType.TAG),
+    new tokens.Token(14, 15, 'tag', tokens.TokenType.TAG),
   ];
 
   it('should throw when a hierarchy is supplied', function() {

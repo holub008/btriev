@@ -325,6 +325,39 @@ describe('invalid queries', function () {
         end: 4,
         message: 'Binary path operator requires left and right expressions to operate on.',
       },
+      {
+        query: 'tag1 and tag2 or  and tag3',
+        start: 14,
+        end: 15,
+        message: 'Binary OR requires left and right expressions to operate on.',
+      },
+    ];
+    assertExceptions(queries, data1, hierarchy);
+  });
+
+  it('unary op separating tags', function() {
+    const queries = [
+      {
+        query: 'tag1 not tag2',
+        start: 4,
+        end: 9,
+        message: 'Expected an operator between expressions',
+      },
+      // TODO
+      /*
+      {
+        query: 'tag1 not and tag2',
+        start: 0,
+        end: 2,
+        message: 'Binary AND requires left and right expressions to operate on.',
+      },
+      */
+      {
+        query: 'tag1 not or tag2',
+        start: 5,
+        end: 7,
+        message: 'Left unary NOT requires an expression to operate on.',
+      },
     ];
     assertExceptions(queries, data1, hierarchy);
   });
@@ -341,6 +374,12 @@ describe('invalid queries', function () {
         query: 'tag1 and "tag2" "tag3"',
         start: 16,
         end: 21,
+        message: 'Expected an operator before tag',
+      },
+      {
+        query: '"tag1" tag2 and',
+        start: 7,
+        end: 10,
         message: 'Expected an operator before tag',
       },
       {
@@ -362,21 +401,16 @@ describe('invalid queries', function () {
   it('trailing binary op', function() {
     const queries = [
       {
-        // TODO this is obviously unideal behavior. however, due to operator precedence and our
-        // parser implementation, it's nontrivial to assign blame to the rightmost operator
-        // we put a test on it, and leave it for now :/
-        // the solution will be to check that sum(operator.arity) in the operator stack === # of expressions.
-        // if that check fails, we accept on the last op
         query: 'tag1 or tag2 and',
-        start: 5,
-        end: 6,
-        message: 'Binary OR requires left and right expressions to operate on.',
+        start: 13,
+        end: 15,
+        message: 'Binary AND requires left and right expressions to operate on.',
       },
       {
         query: 'tag3 or (tag1 or tag2 and) and tag4',
-        start: 14,
-        end: 15,
-        message: 'Binary OR requires left and right expressions to operate on.',
+        start: 22,
+        end: 24,
+        message: 'Binary AND requires left and right expressions to operate on.',
       },
       {
         query: 'tag1 and tag2 or',
@@ -434,13 +468,15 @@ describe('invalid queries', function () {
       },
       {
         query: 'tag1 or not',
-        start: 5,
-        end: 6,
-        message: 'Binary OR requires left and right expressions to operate on.',
+        start: 8,
+        end: 10,
+        message: 'Left unary NOT requires an expression to operate on.',
       },
     ];
     assertExceptions(queries, data1, hierarchy);
   });
+
+
 
   it('binary op no operands', function() {
     const queries = [

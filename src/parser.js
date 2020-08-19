@@ -3,28 +3,6 @@ const ast = require('./ast');
 const ops = require('./operators');
 const err = require('./errors');
 
-function getIndexEdges(root) {
-  const children = root.getChildren();
-
-  if (children.length === 0) {
-    return [root.getToken().getStartIndex(), root.getToken().getEndIndex()];
-  }
-
-  let rootedMin = Infinity;
-  let rootedMax = -1;
-  children.forEach(c => {
-    const [cMin, cMax] = getIndexEdges(c);
-    if (cMin < rootedMin) {
-      rootedMin = cMin;
-    }
-    if (cMax > rootedMax) {
-      rootedMax = cMax;
-    }
-  });
-
-  return [rootedMin, rootedMax];
-}
-
 function shouldBackProcess(node, operatorStack) {
   if (operatorStack.length <= 0) {
     return false;
@@ -218,8 +196,8 @@ class Parser {
     // this condition indicates that two operands were abutted, with no operator between them
     // I don't expect this to ever happen give the earlier checks for non-adjoined tags
     if (expressions.length > 1) {
-      const lhsEnd = getIndexEdges(expressions[0])[1] + 1;
-      const rhsStart = getIndexEdges(expressions[1])[0];
+      const lhsEnd = ast.getIndexEdges(expressions[0])[1] + 1;
+      const rhsStart = ast.getIndexEdges(expressions[1])[0];
       throw new err.ParseError('Expected an operator between expressions',
         lhsEnd, rhsStart);
     }
