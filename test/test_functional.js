@@ -343,15 +343,12 @@ describe('invalid queries', function () {
         end: 9,
         message: 'Expected an operator between expressions',
       },
-      // TODO
-      /*
       {
         query: 'tag1 not and tag2',
-        start: 0,
-        end: 2,
-        message: 'Binary AND requires left and right expressions to operate on.',
+        start: 5,
+        end: 7,
+        message: 'Left unary NOT requires an expression to operate on.',
       },
-      */
       {
         query: 'tag1 not or tag2',
         start: 5,

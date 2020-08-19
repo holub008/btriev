@@ -40,7 +40,7 @@ class Node {
           this.#token.getStartIndex(), this.#token.getEndIndex());
       }
 
-      // TODO this is slow, but does give the user informative errors
+      // this is slow(er), but does give the user informative errors
       if (getIndexEdges(rhs)[0] < this.#token.getStartIndex()) {
         throw new err.ParseError(`Binary ${this.#operator.getDisplayName()} requires left and right expressions to operate on.`,
           this.#token.getStartIndex(), this.#token.getEndIndex());
