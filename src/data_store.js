@@ -13,10 +13,9 @@ function inferAllDataIds(index) {
   return [...uniqueDataIds];
 }
 
-// TODO verify data ids are unique in each tag array
 class DataStore {
   /**
-   * if the data ids are not sorted in ascending order, use this entry point to sort
+   * if the data ids are not unique sorted in ascending order, use this entry point to sort
    * @param invertedIndex an index of tag id to an array data id
    * @param allDataIds an array of data ids
    *
@@ -28,7 +27,7 @@ class DataStore {
       allDataIdsSorted = inferAllDataIds(invertedIndex).sort((a, b) => a - b);
     }
     else {
-      allDataIdsSorted = allDataIds.slice().sort((a, b) => a - b);
+      allDataIdsSorted = ([...new Set(allDataIds)]).sort((a, b) => a - b);
     }
     return new DataStore(sortIndex(invertedIndex), allDataIdsSorted);
   }
@@ -37,7 +36,7 @@ class DataStore {
   #allDataIds;
 
   /**
-   * note - if your data are not sorted in advance, use the fromUnsortedIndex static ctor
+   * note - if your data are not unique and sorted in advance, use the fromUnsortedIndex static ctor
    * @param invertedIndex an index of tag id to an array data id (MUST BE SORTED!)
    * @param allDataIds an array of all data ids - a superset of those in the index (MUST BE SORTED!)
    */

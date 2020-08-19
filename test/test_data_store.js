@@ -2,9 +2,33 @@ const assert = require('assert');
 
 const ds = require('../src/data_store');
 
+describe('data store static ctor', function() {
+  it('should handle unordered, duplicated data ids', function() {
+    const store = ds.DataStore.fromUnsortedIndex({
+      11: [1, 2, 3, 3],
+      12: [5, 4],
+      13: [3, 5, 5, 4]
+    });
+
+    assert.deepStrictEqual(store.getAllDataIds(), [1, 2, 3, 4, 5]);
+    assert.deepStrictEqual(store.getDataIdsForTagIds([11]), [1, 2, 3]);
+    assert.deepStrictEqual(store.getDataIdsForTagIds([12]), [4, 5]);
+    assert.deepStrictEqual(store.getDataIdsForTagIds([13]), [3, 4, 5]);
+  });
+
+  it('should handle unordered, duplicated data ids with all data ids', function() {
+    const store = ds.DataStore.fromUnsortedIndex({
+      11: [1, 2, 3, 3],
+      12: [5, 4],
+      13: [3, 5, 5, 4]
+    }, [3, 4, 5, 5, 2, 1]);
+    assert.deepStrictEqual(store.getAllDataIds(), [1, 2, 3, 4, 5]);
+  });
+});
+
 describe('data store', function () {
   const data = ds.DataStore.fromUnsortedIndex({
-    11: [1, 2, 3],
+    11: [3, 2, 1],
     12: [5],
     13: [3, 5]
   })
