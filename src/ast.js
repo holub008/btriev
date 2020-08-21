@@ -124,9 +124,10 @@ class Node {
   }
 
   toString(recursive=false) {
+    const operator = this.getOperator();
     return JSON.stringify({
       token: this.getToken(),
-      operator: this.getOperator()?.getDisplayName(),
+      operator: operator ? operator.getDisplayName() : undefined,
       children: recursive ? this.getChildren().map(c => c.toString(recursive)) : this.getChildren().length,
     });
   }
