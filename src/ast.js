@@ -3,22 +3,22 @@ const ops = require('./operators');
 
 class Node {
 
-  #children = []
-  #token;
-  #operator;
-  #controlDepth;
+  _children = []
+  _token;
+  _operator;
+  _controlDepth;
 
   constructor(token, operator=null) {
-    this.#token = token;
-    this.#operator = operator;
+    this._token = token;
+    this._operator = operator;
   }
 
   getToken() {
-    return this.#token;
+    return this._token;
   }
 
   getOperator() {
-    return this.#operator;
+    return this._operator;
   }
 
   attachToAST(expressions) {
@@ -26,59 +26,59 @@ class Node {
      * note, this method makes assumptions about how the token & expression stack is populated. it should be assumed "package private"\
      * `this` object is mutated, and expressions is mutated (this is done in place for performance reasons :|)
      */
-    if (!this.#operator) {
+    if (!this.getOperator()) {
       throw new Error('Attaching a non-operator to the AST is not allowed!');
     }
 
-    if (this.#operator.getPlacement() === ops.OperatorPlacement.INFIX) {
+    if (this.getOperator().getPlacement() === ops.OperatorPlacement.INFIX) {
       // always pop from the back
       const rhs = expressions.pop();
       const lhs = expressions.pop();
 
       if (!rhs || !lhs || lhs.getControlDepth() !== rhs.getControlDepth() || lhs.getControlDepth() !== this.getControlDepth()) {
-        throw new err.ParseError(`Binary ${this.#operator.getDisplayName()} requires left and right expressions to operate on.`,
-          this.#token.getStartIndex(), this.#token.getEndIndex());
+        throw new err.ParseError(`Binary ${this.getOperator().getDisplayName()} requires left and right expressions to operate on.`,
+          this.getToken().getStartIndex(), this.getToken().getEndIndex());
       }
 
       // this is slow(er), but does give the user informative errors
-      if (getIndexEdges(rhs)[0] < this.#token.getStartIndex()) {
-        throw new err.ParseError(`Binary ${this.#operator.getDisplayName()} requires left and right expressions to operate on.`,
-          this.#token.getStartIndex(), this.#token.getEndIndex());
+      if (getIndexEdges(rhs)[0] < this.getToken().getStartIndex()) {
+        throw new err.ParseError(`Binary ${this.getOperator().getDisplayName()} requires left and right expressions to operate on.`,
+          this.getToken().getStartIndex(), this.getToken().getEndIndex());
       }
 
       this.addChild(lhs);
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this.#operator.getPlacement() === ops.OperatorPlacement.LEFT) {
+    else if (this.getOperator().getPlacement() === ops.OperatorPlacement.LEFT) {
       const rhs = expressions.pop();
 
       if (!rhs || rhs.getControlDepth() !== this.getControlDepth()) {
-        throw new err.ParseError(`Left unary ${this.#operator.getDisplayName()} requires an expression to operate on`,
-          this.#token.getStartIndex(), this.#token.getEndIndex());
+        throw new err.ParseError(`Left unary ${this.getOperator().getDisplayName()} requires an expression to operate on`,
+          this.getToken().getStartIndex(), this.getToken().getEndIndex());
       }
 
-      if (getIndexEdges(rhs)[0] < this.#token.getStartIndex()) {
-        throw new err.ParseError(`Left unary ${this.#operator.getDisplayName()} requires an expression to operate on.`,
-          this.#token.getStartIndex(), this.#token.getEndIndex());
+      if (getIndexEdges(rhs)[0] < this._token.getStartIndex()) {
+        throw new err.ParseError(`Left unary ${this.getOperator().getDisplayName()} requires an expression to operate on.`,
+          this.getToken().getStartIndex(), this.getToken().getEndIndex());
       }
 
       this.addChild(rhs);
       expressions.push(this);
     }
-    else if (this.#operator.getPlacement() === ops.OperatorPlacement.RIGHT) {
+    else if (this.getOperator().getPlacement() === ops.OperatorPlacement.RIGHT) {
       const lhs = expressions.pop();
 
       if (!lhs || lhs.getControlDepth() !== this.getControlDepth()) {
-        throw new err.ParseError(`Right unary ${this.#operator.getDisplayName()} requires an expression to operate on`,
-          this.#token.getStartIndex(), this.#token.getEndIndex());
+        throw new err.ParseError(`Right unary ${this.getOperator().getDisplayName()} requires an expression to operate on`,
+          this._token.getStartIndex(), this.getToken().getEndIndex());
       }
 
       this.addChild(lhs);
       expressions.push(this);
     }
     else {
-      throw new Error(`Unexpected operator placement attribute: ${this.#operator.getPlacement()}`);
+      throw new Error(`Unexpected operator placement attribute: ${this.getOperator().getPlacement()}`);
     }
   }
 
@@ -86,35 +86,35 @@ class Node {
    * add a child node, incrementally
    */
   addChild(node) {
-    this.#children.push(node);
+    this._children.push(node);
   }
 
   /**
    * get the nodes children, in their current state
    */
   getChildren() {
-    return this.#children;
+    return this._children;
   }
 
   /**
    * set the node's children, completely overwriting prior children
    */
   setChildren(children) {
-    this.#children = children;
+    this._children = children;
   }
 
   /**
    * do not use - this is considered an implementation detail of the Node class
    */
   setControlDepth(depth) {
-    this.#controlDepth = depth;
+    this._controlDepth = depth;
   }
 
   /**
    * do not use - this is considered an implementation detail of the Node class
    */
   getControlDepth() {
-    return this.#controlDepth;
+    return this._controlDepth;
   }
 
   equals(other) {

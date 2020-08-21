@@ -1,18 +1,18 @@
 class EvaluationContext {
-  #tagHierarchy;
-  #data;
+  _tagHierarchy;
+  _data;
 
   constructor(tagHierarchy, data) {
-    this.#tagHierarchy = tagHierarchy;
-    this.#data = data;
+    this._tagHierarchy = tagHierarchy;
+    this._data = data;
   }
 
   getTagHierarchy() {
-    return this.#tagHierarchy
+    return this._tagHierarchy
   }
 
   getDataStore() {
-    return this.#data;
+    return this._data;
   }
 }
 

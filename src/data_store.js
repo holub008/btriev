@@ -32,8 +32,8 @@ class DataStore {
     return new DataStore(sortIndex(invertedIndex), allDataIdsSorted);
   }
 
-  #tagIdToDataIds;
-  #allDataIds;
+  _tagIdToDataIds;
+  _allDataIds;
 
   /**
    * note - if your data are not unique and sorted in advance, use the fromUnsortedIndex static ctor
@@ -41,16 +41,16 @@ class DataStore {
    * @param allDataIds an array of all data ids - a superset of those in the index (MUST BE SORTED!)
    */
   constructor(invertedIndex, allDataIds) {
-    this.#tagIdToDataIds = invertedIndex;
-    this.#allDataIds = allDataIds;
+    this._tagIdToDataIds = invertedIndex;
+    this._allDataIds = allDataIds;
   }
 
   getDataIdsForTagIds(tagIds) {
     const dataIds = new Set();
     tagIds.forEach(id => {
-      const dids = this.#tagIdToDataIds[id];
+      const dids = this._tagIdToDataIds[id];
       if (dids) {
-        this.#tagIdToDataIds[id].forEach(did => {
+        this._tagIdToDataIds[id].forEach(did => {
           dataIds.add(did);
         });
       }
@@ -60,7 +60,7 @@ class DataStore {
   }
 
   getAllDataIds() {
-    return this.#allDataIds;
+    return this._allDataIds;
   }
 }
 

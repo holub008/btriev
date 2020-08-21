@@ -63,10 +63,10 @@ class TagHierarchy {
     return new TagHierarchy(adjacency, tagNameToIds, tagIdToIndex);
   }
 
-  #adjacency;
-  #tagNameToIds;
-  #tagIdToIndex;
-  #indexToTagId;
+  _adjacency;
+  _tagNameToIds;
+  _tagIdToIndex;
+  _indexToTagId;
 
   /**
    * note, this constructor should effectively be treated as private - see static constructor createFromEdgeList
@@ -75,23 +75,23 @@ class TagHierarchy {
    * @param tagIdToIndex maps an external tag id to an index
    */
   constructor(adjacency, tagNameToIds, tagIdToIndex) {
-    this.#adjacency = adjacency;
-    this.#tagNameToIds = tagNameToIds;
-    this.#tagIdToIndex = tagIdToIndex;
+    this._adjacency = adjacency;
+    this._tagNameToIds = tagNameToIds;
+    this._tagIdToIndex = tagIdToIndex;
 
     const indexToTagId = {};
     Object.entries(tagIdToIndex).forEach(([id, ix]) => {
       indexToTagId[ix] = parseInt(id);
     });
-    this.#indexToTagId = indexToTagId;
+    this._indexToTagId = indexToTagId;
   }
 
   containsTag(name) {
-    return this.#tagNameToIds[name] !== undefined;
+    return this._tagNameToIds[name] !== undefined;
   }
 
   getIds(tagName) {
-    const ids = this.#tagNameToIds[tagName];
+    const ids = this._tagNameToIds[tagName];
     if (!ids) {
       return [];
     }
@@ -105,7 +105,7 @@ class TagHierarchy {
    * @return an array of indices representing tags at the end of the path
    */
   getIdsForPath(idPath) {
-    const indexPath = idPath.map(ids => ids.map(id => this.#tagIdToIndex[id]))
+    const indexPath = idPath.map(ids => ids.map(id => this._tagIdToIndex[id]))
     const candidatePaths = recurseListCombinations(indexPath);
     const matchingIds = new Set();
     candidatePaths.forEach(p => {
@@ -113,13 +113,13 @@ class TagHierarchy {
       for (let ix = 0; ix < (p.length - 1); ix++) {
         const fromIx = p[ix];
         const toIx = p[ix + 1];
-        if (!this.#adjacency[fromIx].includes(toIx)) {
+        if (!this._adjacency[fromIx].includes(toIx)) {
           exists = false;
         }
       }
 
       if (exists) {
-        matchingIds.add(this.#indexToTagId[p[p.length - 1]]);
+        matchingIds.add(this._indexToTagId[p[p.length - 1]]);
       }
     });
 
@@ -138,14 +138,14 @@ class TagHierarchy {
   explode(ids) {
     // perform a BFS from the ids - note, the hierarchy should be a tree/forest, but we still use a cycle-safe
     // implementation. we can safely share the collector, to the benefit of not repeating work
-    const indices = ids.map(id => this.#tagIdToIndex[id]);
+    const indices = ids.map(id => this._tagIdToIndex[id]);
     const collector = new Set();
     indices.forEach(root => {
       collector.add(root);
-      bfsCollect(root, this.#adjacency, collector);
+      bfsCollect(root, this._adjacency, collector);
     });
 
-    return [...collector].map(ix => this.#indexToTagId[ix]);
+    return [...collector].map(ix => this._indexToTagId[ix]);
   }
 }
 

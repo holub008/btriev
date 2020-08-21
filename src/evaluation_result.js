@@ -20,8 +20,8 @@ class EvaluationResult {
     return new EvaluationResult(undefined, tagIds);
   }
 
-  #dataIds;
-  #tagIds;
+  _dataIds;
+  _tagIds;
 
   constructor(dataIds, tagIds) {
     if (!dataIds && !tagIds) {
@@ -32,8 +32,8 @@ class EvaluationResult {
       throw new Error('Cannot construct an evaluation result with both tags and data');
     }
 
-    this.#dataIds = dataIds;
-    this.#tagIds = tagIds;
+    this._dataIds = dataIds;
+    this._tagIds = tagIds;
   }
 
   /**
@@ -42,19 +42,19 @@ class EvaluationResult {
    * @param context an EvaluationContext object
    */
   getDataIds(context) {
-    if (this.#dataIds) {
-      return this.#dataIds;
+    if (this._dataIds) {
+      return this._dataIds;
     }
     else {
-      return context.getDataStore().getDataIdsForTagIds(this.#tagIds);
+      return context.getDataStore().getDataIdsForTagIds(this._tagIds);
     }
   }
 
   getTagIds() {
-    if (!this.#tagIds) {
+    if (!this._tagIds) {
       throw new Error('Attempting to access tags from a data based evaluation result');
     }
-    return this.#tagIds;
+    return this._tagIds;
   }
 }
 
