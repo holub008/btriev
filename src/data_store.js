@@ -32,9 +32,6 @@ class DataStore {
     return new DataStore(sortIndex(invertedIndex), allDataIdsSorted);
   }
 
-  _tagIdToDataIds;
-  _allDataIds;
-
   /**
    * note - if your data are not unique and sorted in advance, use the fromUnsortedIndex static ctor
    * @param invertedIndex an index of tag id to an array data id (MUST BE SORTED!)

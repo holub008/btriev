@@ -3,14 +3,10 @@ const ops = require('./operators');
 
 class Node {
 
-  _children = []
-  _token;
-  _operator;
-  _controlDepth;
-
   constructor(token, operator=null) {
     this._token = token;
     this._operator = operator;
+    this._children = []
   }
 
   getToken() {

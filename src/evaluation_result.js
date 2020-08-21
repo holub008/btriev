@@ -20,9 +20,6 @@ class EvaluationResult {
     return new EvaluationResult(undefined, tagIds);
   }
 
-  _dataIds;
-  _tagIds;
-
   constructor(dataIds, tagIds) {
     if (!dataIds && !tagIds) {
       throw new Error('Cannot construct an evaluation result without either tags or data');

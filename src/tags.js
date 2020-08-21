@@ -63,11 +63,6 @@ class TagHierarchy {
     return new TagHierarchy(adjacency, tagNameToIds, tagIdToIndex);
   }
 
-  _adjacency;
-  _tagNameToIds;
-  _tagIdToIndex;
-  _indexToTagId;
-
   /**
    * note, this constructor should effectively be treated as private - see static constructor createFromEdgeList
    * @param adjacency an array of array of indices, representing a sparse graph adjacency matrix

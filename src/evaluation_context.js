@@ -1,6 +1,4 @@
 class EvaluationContext {
-  _tagHierarchy;
-  _data;
 
   constructor(tagHierarchy, data) {
     this._tagHierarchy = tagHierarchy;
