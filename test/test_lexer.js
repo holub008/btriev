@@ -191,41 +191,56 @@ describe('symbol operator regex', function () {
 });
 
 describe('empty query lexing', function() {
-    const query = "";
-    const query2 = " ";
+  const query = "";
+  const query2 = " ";
 
-    const lexer = new btriev.Lexer();
+  const lexer = new btriev.Lexer();
 
-    it('should return an empty token list', function() {
-      assert.notStrictEqual(lexer.tokenize(query), []);
-    });
+  it('should return an empty token list', function() {
+    assert.notStrictEqual(lexer.tokenize(query), []);
+  });
 
-   it('should return an empty token list for whitespace', function() {
-     assert.notStrictEqual(lexer.tokenize(query2), []);
-   });
+ it('should return an empty token list for whitespace', function() {
+   assert.notStrictEqual(lexer.tokenize(query2), []);
+ });
 });
 
 
 describe('lexing an unquoted tag', function() {
-    const queryLower = "blah";
-    const queryMixed = "Blah";
+  const queryLower = "blah";
+  const queryMixed = "Blah";
+  const queryLeading = "Blah   ";
+  const queryTrailing = "   Blah   ";
 
-    const lexer = new btriev.Lexer();
+  const lexer = new btriev.Lexer();
 
-    it('should return a single token', function() {
-      const target = [new tokens.Token(0, 3, 'blah', tokens.TokenType.TAG)];
-      assert.ok(tokens.tokensEqual(lexer.tokenize(queryLower), target));
-    });
+  it('should return a single token', function() {
+    const target = [new tokens.Token(0, 3, 'blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryLower), target));
+  });
 
-    it('should return a single token, case sensitive', function() {
-      const target = [new tokens.Token(0, 3, 'Blah', tokens.TokenType.TAG)];
-      assert.ok(tokens.tokensEqual(lexer.tokenize(queryMixed), target));
-    });
+  it('should return a single token, case sensitive', function() {
+    const target = [new tokens.Token(0, 3, 'Blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryMixed), target));
+  });
+
+  it('should return a single token, with correct leading indices', function() {
+    const target = [new tokens.Token(0, 3, 'Blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryLeading), target));
+  });
+
+  it('should return a single token, with correct trailing indices', function() {
+    const target = [new tokens.Token(3, 6, 'Blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryTrailing), target));
+  });
 });
 
 describe('lexing a quoted tag', function() {
   const queryLower = '"blah blah"';
   const queryMixed = '"Blah and \\"blah\\""';
+  const queryTrailing = '"Blah"  ';
+  const queryLeading = '  "Blah"';
+
 
   const lexer = new btriev.Lexer();
 
@@ -237,6 +252,16 @@ describe('lexing a quoted tag', function() {
   it('should handle escaped text', function() {
     const target = [new tokens.Token(0, 18, 'Blah and "blah"', tokens.TokenType.TAG)];
     assert.ok(tokens.tokensEqual(lexer.tokenize(queryMixed), target));
+  });
+
+  it('should handle trailing whitespace', function() {
+    const target = [new tokens.Token(0, 5, 'Blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryTrailing), target));
+  });
+
+  it('should handle leading whitespace', function() {
+    const target = [new tokens.Token(2, 7, 'Blah', tokens.TokenType.TAG)];
+    assert.ok(tokens.tokensEqual(lexer.tokenize(queryLeading), target));
   });
 });
 

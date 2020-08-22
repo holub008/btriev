@@ -100,12 +100,14 @@ class Lexer {
       }
       else {
         // if nothing else matched as an operator or quoted tag, all that remains is an unquoted tag
-        const tag = unconsumedQuery.trim();
-        if (tag)  {
+        const leftStripped = unconsumedQuery.trimLeft();
+        const tagStripped = leftStripped.trimRight();
+        const leftIx = consumedIx + (unconsumedQuery.length - leftStripped.length);
+        if (tagStripped)  {
           tokens.push(new Token(
-            consumedIx + (unconsumedQuery.length - tag.length),
-            query.length - 1,
-            tag,
+            leftIx,
+            leftIx + tagStripped.length - 1,
+            tagStripped,
             TokenType.TAG
           ));
         }
