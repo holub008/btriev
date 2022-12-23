@@ -13,6 +13,22 @@ function inferAllDataIds(index) {
   return [...uniqueDataIds];
 }
 
+function preconditionSubset(indexIds, allIds) {
+  let currentIx = 0;
+  indexIds.forEach((id) => {
+    while (currentIx < allIds.length) {
+      if (allIds[currentIx] === id) {
+        return;
+      } else {
+        currentIx += 1;
+      }
+    }
+    throw new Error(
+        `Data id ${id} is given in the index, but was not supplied in allDataIds. This condition will
+        lead to inaccurate queries, failing fast.`)
+  });
+}
+
 class DataStore {
   /**
    * if the data ids are not unique sorted in ascending order, use this entry point to sort
@@ -27,7 +43,9 @@ class DataStore {
       allDataIdsSorted = inferAllDataIds(invertedIndex).sort((a, b) => a - b);
     }
     else {
+      const inferredIdsSorted = inferAllDataIds(invertedIndex).sort((a, b) => a - b);
       allDataIdsSorted = ([...new Set(allDataIds)]).sort((a, b) => a - b);
+      preconditionSubset(inferredIdsSorted, allDataIdsSorted);
     }
     return new DataStore(sortIndex(invertedIndex), allDataIdsSorted);
   }

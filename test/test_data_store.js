@@ -24,6 +24,14 @@ describe('data store static ctor', function() {
     }, [3, 4, 5, 5, 2, 1]);
     assert.deepStrictEqual(store.getAllDataIds(), [1, 2, 3, 4, 5]);
   });
+
+  it('should throw for non-subset data', function() {
+    assert.throws(() => ds.DataStore.fromUnsortedIndex({
+      11: [1, 2, 3, 3],
+      12: [5, 4],
+      13: [3, 5, 5, 4]
+    }, [1, 3, 2, 4]))
+  });
 });
 
 describe('data store', function () {
@@ -31,7 +39,7 @@ describe('data store', function () {
     11: [3, 2, 1],
     12: [5],
     13: [3, 5]
-  })
+  });
   it('should identify all data ids', function() {
     assert.deepStrictEqual(data.getAllDataIds(), [1, 2, 3, 5]);
   });

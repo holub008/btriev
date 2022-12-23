@@ -1,11 +1,10 @@
 {
   "name": "btriev",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Boolean Retrieval on Hierarchical Data",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha",
-    "repl": "local-repl"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -30,7 +29,6 @@
   "homepage": "https://github.com/holub008/btriev#readme",
   "dependencies": {},
   "devDependencies": {
-    "local-repl": "^4.0.0",
     "mocha": "^8.0.1",
     "rewire": "^5.0.0"
   }
